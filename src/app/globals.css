@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-farm-50: #f0fdf4;
+  --color-farm-100: #dcfce7;
+  --color-farm-200: #bbf7d0;
+  --color-farm-300: #86efac;
+  --color-farm-400: #4ade80;
+  --color-farm-500: #22c55e;
+  --color-farm-600: #16a34a;
+  --color-farm-700: #15803d;
+  --color-farm-800: #166534;
+  --color-farm-900: #14532d;
+  --color-farm-950: #052e16;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-900 antialiased;
+  }
+}
+
+/* Hide scrollbar */
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* PIN dot animation */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.pin-dot-filled {
+  animation: pop 0.15s ease-out;
+}
+
+/* Floating label card */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+  animation: slideUp 0.4s ease-out both;
+}
+
+.slide-up-delay-1 { animation-delay: 0.1s; }
+.slide-up-delay-2 { animation-delay: 0.2s; }
+.slide-up-delay-3 { animation-delay: 0.3s; }
