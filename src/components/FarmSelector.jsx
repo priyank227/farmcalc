@@ -3,27 +3,27 @@
 import { useEffect, useState } from 'react';
 import useFarmStore from '@/store/useFarmStore';
 import useLanguageStore from '@/store/useLanguageStore';
-import { getFarms, createFarm } from '@/lib/actions';
+import { getFarms, createFarm, getUserRecord } from '@/lib/actions';
 import toast from 'react-hot-toast';
 import { ChevronDown, Plus, Tractor } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function FarmSelector() {
-  const { selectedFarmId, setSelectedFarmId } = useFarmStore();
+  const { selectedFarmId, setSelectedFarmId, farms, setFarms, setUserName } = useFarmStore();
   const { t } = useLanguageStore();
-  const [farms, setFarms] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [newFarmName, setNewFarmName] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(farms.length === 0);
   const router = useRouter();
 
   useEffect(() => { loadFarms(); }, []);
 
   const loadFarms = async () => {
     try {
-      const data = await getFarms();
+      const [data, userRec] = await Promise.all([getFarms(), getUserRecord()]);
       setFarms(data);
+      if (userRec?.name) setUserName(userRec.name);
       if (data.length > 0 && (!selectedFarmId || !data.find(f => f.id === selectedFarmId))) {
         setSelectedFarmId(data[0].id);
       }

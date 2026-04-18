@@ -19,6 +19,26 @@ const translations = {
   note: { en: 'Note (optional)', hi: 'नोट (वैकल्पिक)', gu: 'નોંધ (વૈકલ્પિક)' },
   amount: { en: 'Amount (₹)', hi: 'राशि (₹)', gu: 'રકમ (₹)' },
   updateDetails: { en: 'Update entry details', hi: 'एंट्री विवरण अपडेट करें', gu: 'નોંધ વિગત અપડેટ કરો' },
+  profile: { en: 'Profile', hi: 'प्रोफ़ाइल', gu: 'પ્રોફાઇલ' },
+  logout: { en: 'Log out', hi: 'लॉग आउट', gu: 'લોગ આઉટ' },
+  role: { en: 'Role', hi: 'भूमिका', gu: 'ભૂમિકા' },
+  owner: { en: 'Owner', hi: 'मालिक', gu: 'માલિક' },
+  worker: { en: 'Worker', hi: 'मजदूर', gu: 'કામદાર' },
+  joined: { en: 'Joined', hi: 'जुड़े', gu: 'જોડાયા' },
+  yourName: { en: 'Your Name', hi: 'आपका नाम', gu: 'તમારું નામ' },
+  cropNamePlaceholder: { en: 'Crop name', hi: 'फसल का नाम', gu: 'પાકનું નામ' },
+  totalAmountReceived: { en: 'Total Amount Received', hi: 'कुल राशि प्राप्त हुई', gu: 'કુલ રકમ પ્રાપ્ત થઈ' },
+  pricePerUnit: { en: 'Price per unit', hi: 'प्रति यूनिट मूल्य', gu: 'પ્રતિ યુનિટ કિંમત' },
+  noteOrBill: { en: 'Note or Bill', hi: 'नोट या बिल', gu: 'નોંધ અથવા બિલ' },
+  noExpensesYet: { en: 'No expenses yet', hi: 'अभी कोई खर्च नहीं', gu: 'હજી કોઈ ખર્ચ નથી' },
+  noIncomeYet: { en: 'No income yet', hi: 'अभी कोई आय नहीं', gu: 'હજી કોઈ આવક નથી' },
+  noWorkersYet: { en: 'No workers yet', hi: 'अभी कोई मजदूर नहीं', gu: 'હજી કોઈ કામદાર નથી' },
+  createFirstFarm: { en: 'Create First Farm', hi: 'पहला खेत बनाएं', gu: 'પ્રથમ ખેતર બનાવો' },
+  newFarm: { en: 'New Farm', hi: 'नया खेत', gu: 'નવું ખેતર' },
+  newFarmDesc: { en: 'Add your first farm to get started', hi: 'शुरू करने के लिए अपना पहला खेत जोड़ें', gu: 'શરૂ કરવા માટે તમારું પ્રથમ ખેતર ઉમેરો' },
+  farmNamePlaceholder: { en: 'Farm name', hi: 'खेत का नाम', gu: 'ખેતરનું નામ' },
+  settlementDesc: { en: 'Settlement description', hi: 'हिसाब का विवरण', gu: 'હિસાબ નું વર્ણન' },
+  sharePercent: { en: 'Share Percent', hi: 'हिस्सेदारी प्रतिशत', gu: 'હિસ્સેદારી ટકાવારી' },
 
   // Login
   loginTagline: { en: 'Khet nu Hisab, Easy Raahe', hi: 'खेत का हिसाब, आसान राहें', gu: 'ખેતનું હિસાબ, સરળ રીતે' },
@@ -26,9 +46,16 @@ const translations = {
   createAccount: { en: 'Create Account', hi: 'खाता बनाएं', gu: 'ખાતું બનાવો' },
   loginSubtitle: { en: 'Enter your mobile number to continue', hi: 'जारी रखने के लिए मोबाइल नंबर दर्ज करें', gu: 'આગળ વધવા મોબાઇલ નંબર દાખલ કરો' },
   registerSubtitle: { en: 'Register with your mobile number', hi: 'अपने मोबाइल नंबर से रजिस्टर करें', gu: 'તમારા મોબાઇલ નંબરથી નોંધણી કરો' },
+  enterPinTitle: { en: 'Enter PIN', hi: 'PIN दर्ज करें', gu: 'PIN દાખલ કરો' },
+  setPinTitle: { en: 'Set PIN', hi: 'PIN सेट करें', gu: 'PIN સેટ કરો' },
+  setPinSubtitle: { en: 'Create a 4-digit PIN for your account', hi: 'अपने खाते के लिए 4-अंकीय PIN बनाएं', gu: 'તમારા ખાતા માટે 4 આંકડાનો PIN બનાવો' },
   mobileNumber: { en: 'Mobile Number', hi: 'मोबाइल नंबर', gu: 'મોબાઇલ નંબર' },
   continueBtn: { en: 'Continue →', hi: 'आगे बढ़ें →', gu: 'આગળ →' },
   enterPinSubtitle: { en: 'Enter your 4-digit PIN', hi: 'अपना 4 अंकों का PIN दर्ज करें', gu: 'તમારો 4 આંકડાનો PIN દાખલ કરો' },
+  dontHaveAccount: { en: 'Don\'t have an account?', hi: 'खाता नहीं है?', gu: 'ખાતું નથી?' },
+  alreadyHaveAccount: { en: 'Already have an account?', hi: 'खाता है?', gu: 'ખાતું છે?' },
+  changeNumber: { en: 'Change Number', hi: 'नंबर बदलें', gu: 'નંબર બદલો' },
+
 
   // Dashboard
   workerUpad: { en: 'Worker Upad', hi: 'मजदूर उपाड़', gu: 'મજૂર ઉપાડ' },
@@ -43,6 +70,7 @@ const translations = {
   farmExpensesDesc: { en: 'Pesticide & materials', hi: 'कीटनाशक और सामग्री', gu: 'જંતુનાશક અને સામગ્રી' },
   cropIncomeDesc: { en: 'Money from crops', hi: 'फसल से पैसे', gu: 'પાકથી પૈસા' },
   workersDesc: { en: 'Manage & set shares', hi: 'प्रबंधन और हिस्से तय करें', gu: 'કામદારોનું સંચાલન અને ભાગ નક્કી કરો' },
+  addNewFarm: { en: 'Add New Farm', hi: 'नया खेत जोड़ें', gu: 'નવું ખેતર ઉમેરો' },
 
   // Majuri
   totalMajuriGiven: { en: 'Total Majuri Paid', hi: 'कुल मज़ूरी दी', gu: 'કુલ મજૂરી આપવામાં આવી' },
@@ -65,10 +93,14 @@ const translations = {
   manageWorkers: { en: 'Manage Workers', hi: 'मजदूर प्रबंधन', gu: 'કામદારો મેનેજ કરો' },
   addWorker: { en: 'Add Worker', hi: 'मजदूर जोड़ें', gu: 'કામદાર ઉમેરો' },
   workersCount: { en: 'Workers', hi: 'मजदूर', gu: 'કામદારો' },
+  addWorkersFirst: { en: 'Add Workers First', hi: 'पहले मज़दूर जोड़ें', gu: 'પહેલા કામદારો ઉમેરો' },
+  noIncomeYet: { en: 'No income recorded yet', hi: 'अभी कोई आय नहीं जोड़ी', gu: 'હજી કોઈ આવક નોંધાઈ નથી' },
+  allIncome: { en: 'All Income', hi: 'कुल आय', gu: 'કુલ આવક' },
 
   // Settlement
   finalSettlement: { en: 'Final Settlement', hi: 'अंतिम हिसाब', gu: 'અંતિમ હિસાબ' },
   netPayable: { en: 'Net Payable', hi: 'कुल देय', gu: 'કુલ ચૂકવવાનું છે' },
+
 };
 
 export default translations;

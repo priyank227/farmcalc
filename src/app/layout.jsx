@@ -32,8 +32,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <div className="max-w-md mx-auto min-h-screen bg-gray-950 flex flex-col relative overflow-x-hidden">
           {children}
         </div>

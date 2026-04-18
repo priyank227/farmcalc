@@ -9,6 +9,11 @@ const useAppStore = create(
       // ─── Farm Selection ────────────────────────────────────────────
       selectedFarmId: null,
       setSelectedFarmId: (id) => set({ selectedFarmId: id }),
+      farms: [],
+      setFarms: (farms) => set({ farms }),
+      userName: null,
+      setUserName: (name) => set({ userName: name }),
+
 
       // ─── Cache Structure ──────────────────────────────────────────
       // { [farmId]: { workers, expenses_upad, expenses_pesticide, income, lastFetched_* } }

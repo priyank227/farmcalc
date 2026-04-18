@@ -9,18 +9,46 @@ async function getUser() {
   return session.userId;
 }
 
+export async function getUserRecord() {
+  const userId = await getUser();
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+  if (error) throw error;
+  return data;
+}
+
 // -- FARMS --
 
 export async function getFarms() {
-  const userId = await getUser();
+  const user = await getUserRecord();
   const supabase = await createClient();
-  const { data, error } = await supabase
+  
+  // 1. Farms as Owner
+  const { data: ownerFarms, error: err1 } = await supabase
     .from('farms')
     .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-  return data;
+    .eq('user_id', user.id);
+  if (err1) throw err1;
+
+  // 2. Farms as Worker
+  const { data: workerRows, error: err2 } = await supabase
+    .from('workers')
+    .select('farms(*)')
+    .eq('mobile_number', user.mobile_number);
+  if (err2) throw err2;
+
+  const workerFarms = (workerRows || [])
+    .map(w => w.farms)
+    .filter(Boolean);
+
+  const allFarms = [
+    ...(ownerFarms || []).map(f => ({ ...f, role: 'owner' })),
+    ...workerFarms.map(f => ({ ...f, role: 'worker' }))
+  ];
+
+  allFarms.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  
+  return allFarms;
 }
 
 export async function createFarm(name, note) {
@@ -49,21 +77,21 @@ export async function getWorkers(farmId) {
   return data;
 }
 
-export async function createWorker(farmId, name, share_percentage) {
+export async function createWorker(farmId, name, share_percentage, mobile_number) {
   await getUser();
   const supabase = await createClient();
   const { error } = await supabase
     .from('workers')
-    .insert([{ farm_id: farmId, name, share_percentage }]);
+    .insert([{ farm_id: farmId, name, share_percentage, mobile_number: mobile_number || null }]);
   if (error) throw error;
 }
 
-export async function updateWorker(workerId, name, share_percentage) {
+export async function updateWorker(workerId, name, share_percentage, mobile_number) {
   await getUser();
   const supabase = await createClient();
   const { error } = await supabase
     .from('workers')
-    .update({ name, share_percentage })
+    .update({ name, share_percentage, mobile_number: mobile_number || null })
     .eq('id', workerId);
   if (error) throw error;
 }

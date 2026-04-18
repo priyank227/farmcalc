@@ -11,8 +11,9 @@ import { PageHeader } from '@/components/ui/PageHeader';
 const CACHE_KEY = 'income';
 
 export default function IncomePage() {
-  const { selectedFarmId, getCached, setCache, invalidateCache } = useAppStore();
+  const { selectedFarmId, getCached, setCache, invalidateCache, farms } = useAppStore();
   const { t } = useLanguageStore();
+  const role = farms.find(f => f.id === selectedFarmId)?.role || 'owner';
   const [incomes, setIncomes] = useState(() => getCached(selectedFarmId, CACHE_KEY) || []);
   const [loading, setLoading] = useState(incomes.length === 0);
   const [cropName, setCropName] = useState('');
@@ -35,7 +36,7 @@ export default function IncomePage() {
   const loadData = useCallback(async (force = false) => {
     if (!selectedFarmId) return;
     const cached = getCached(selectedFarmId, CACHE_KEY);
-    if (!force && cached) { setIncomes(cached); return; }
+    if (!force && cached) { setIncomes(cached); setLoading(false); return; }
     setLoading(true);
     try {
       const data = await getIncome(selectedFarmId);
@@ -100,17 +101,23 @@ export default function IncomePage() {
             <p className="text-3xl font-black text-white">₹{total.toLocaleString('en-IN')}</p>
           </div>
         )}
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-          <h2 className="text-white font-bold mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-emerald-400" />{t('addIncome')}</h2>
-          <form onSubmit={handleAdd} className="space-y-3">
-            <input placeholder={t('cropNamePlaceholder')} value={cropName} onChange={e => setCropName(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" required />
-            <input type="number" placeholder={t('totalAmountReceived')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" required />
-            <input type="number" placeholder={t('pricePerUnit')} value={price} onChange={e => setPrice(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" />
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-emerald-400/60" required />
-            <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" />
-            <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-lg shadow-emerald-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">{submitting ? t('saving') : t('addIncome')}</button>
-          </form>
-        </div>
+        {role === 'worker' ? (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-5 text-center">
+            <p className="text-emerald-300 text-sm font-medium">Read-Only Mode: You cannot add or edit income.</p>
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
+            <h2 className="text-white font-bold mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-emerald-400" />{t('addIncome')}</h2>
+            <form onSubmit={handleAdd} className="space-y-3">
+              <input placeholder={t('cropNamePlaceholder')} value={cropName} onChange={e => setCropName(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" required />
+              <input type="number" placeholder={t('totalAmountReceived')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" required />
+              <input type="number" placeholder={t('pricePerUnit')} value={price} onChange={e => setPrice(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" />
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-emerald-400/60" required />
+              <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-emerald-400/60" />
+              <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold shadow-lg shadow-emerald-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">{submitting ? t('saving') : t('addIncome')}</button>
+            </form>
+          </div>
+        )}
         <h3 className="text-gray-400 font-semibold px-1 text-sm uppercase tracking-wider">{t('allIncome')}</h3>
         {loading ? (
           <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-20 bg-white/5 rounded-3xl animate-pulse" />)}</div>
@@ -131,10 +138,12 @@ export default function IncomePage() {
                     {inc.comment && ` · ${inc.comment}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => openEdit(inc)} className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
-                  <button onClick={() => setDeleteModal(inc)} className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
-                </div>
+                {role === 'owner' && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => openEdit(inc)} className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center hover:bg-emerald-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteModal(inc)} className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

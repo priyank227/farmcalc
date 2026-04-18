@@ -29,12 +29,12 @@ export async function login(mobile_number, pin) {
   return { success: true };
 }
 
-export async function register(mobile_number, pin) {
+export async function register(mobile_number, pin, name) {
   const supabase = await createClient();
   
   const { data: user, error } = await supabase
     .from('users')
-    .insert([{ mobile_number, pin }]) // Store PIN in plaintext
+    .insert([{ mobile_number, pin, name }]) // Store PIN in plaintext
     .select()
     .single();
 
@@ -61,4 +61,24 @@ export async function getSession() {
   const session = cookieStore.get('session');
   if (!session?.value) return null;
   return { userId: session.value };
+}
+
+export async function checkUserExists(mobile_number) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('users')
+    .select('id')
+    .eq('mobile_number', mobile_number)
+    .single();
+  
+  if (data) return { exists: true, workerName: null };
+
+  // Not registered yet — check if they are a known worker
+  const { data: worker } = await supabase
+    .from('workers')
+    .select('name')
+    .eq('mobile_number', mobile_number)
+    .single();
+
+  return { exists: false, workerName: worker?.name || null };
 }

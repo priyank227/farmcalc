@@ -11,8 +11,9 @@ import { PageHeader } from '@/components/ui/PageHeader';
 const CACHE_KEY = 'expenses_majuri';
 
 export default function MajuriPage() {
-  const { selectedFarmId, getCached, setCache, invalidateCache } = useAppStore();
+  const { selectedFarmId, getCached, setCache, invalidateCache, farms } = useAppStore();
   const { t } = useLanguageStore();
+  const role = farms.find(f => f.id === selectedFarmId)?.role || 'owner';
   const [expenses, setExpenses] = useState(() => getCached(selectedFarmId, CACHE_KEY) || []);
   const [workers, setWorkers] = useState(() => getCached(selectedFarmId, 'workers') || []);
   const [loading, setLoading] = useState(expenses.length === 0);
@@ -38,6 +39,7 @@ export default function MajuriPage() {
     if (!force && cachedExp && cachedWorkers) {
       setExpenses(cachedExp); setWorkers(cachedWorkers);
       if (cachedWorkers.length > 0) setWorkerId(prev => prev || cachedWorkers[0].id);
+      setLoading(false);
       return;
     }
     setLoading(true);
@@ -127,26 +129,32 @@ export default function MajuriPage() {
           </div>
         )}
 
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-          <h2 className="text-white font-bold mb-4 flex items-center gap-2">
-            <Plus className="w-4 h-4 text-yellow-400" /> {t('addMajuri')}
-          </h2>
-          {workers.length === 0 ? (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-center">
-              <p className="text-yellow-400 text-sm font-medium">{t('addWorkersFirst')}</p>
-            </div>
-          ) : (
-            <form onSubmit={handleAdd} className="space-y-3">
-              <SelectField value={workerId} onChange={e => setWorkerId(e.target.value)} />
-              <input type="number" placeholder={t('amount')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" required />
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-yellow-400/60" required />
-              <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" />
-              <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold shadow-lg shadow-yellow-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">
-                {submitting ? t('saving') : t('addMajuri')}
-              </button>
-            </form>
-          )}
-        </div>
+        {role === 'worker' ? (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-3xl p-5 text-center">
+            <p className="text-yellow-300 text-sm font-medium">Read-Only Mode: You cannot add or edit majuri.</p>
+          </div>
+        ) : (
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
+            <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+              <Plus className="w-4 h-4 text-yellow-400" /> {t('addMajuri')}
+            </h2>
+            {workers.length === 0 ? (
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-center">
+                <p className="text-yellow-400 text-sm font-medium">{t('addWorkersFirst')}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleAdd} className="space-y-3">
+                <SelectField value={workerId} onChange={e => setWorkerId(e.target.value)} />
+                <input type="number" placeholder={t('amount')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" required />
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-yellow-400/60" required />
+                <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" />
+                <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold shadow-lg shadow-yellow-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">
+                  {submitting ? t('saving') : t('addMajuri')}
+                </button>
+              </form>
+            )}
+          </div>
+        )}
 
         <h3 className="text-gray-400 font-semibold px-1 text-sm uppercase tracking-wider">{t('allEntries')}</h3>
         {loading ? (
@@ -167,10 +175,12 @@ export default function MajuriPage() {
                     {exp.comment && ` · ${exp.comment}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => openEdit(exp)} className="w-10 h-10 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center hover:bg-yellow-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
-                  <button onClick={() => setDeleteModal(exp)} className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
-                </div>
+                {role === 'owner' && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => openEdit(exp)} className="w-10 h-10 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center hover:bg-yellow-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => setDeleteModal(exp)} className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

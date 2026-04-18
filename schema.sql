@@ -5,6 +5,7 @@ CREATE TABLE public.users (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   mobile_number text UNIQUE NOT NULL,
   pin text NOT NULL,
+  name text,
   created_at timestamp with time zone DEFAULT now()
 );
 
@@ -22,6 +23,7 @@ CREATE TABLE public.workers (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   farm_id uuid REFERENCES public.farms(id) ON DELETE CASCADE NOT NULL,
   name text NOT NULL,
+  mobile_number text, -- NEW
   share_percentage numeric DEFAULT 25 NOT NULL,
   created_at timestamp with time zone DEFAULT now()
 );

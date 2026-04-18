@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { login, register } from '@/lib/auth';
+import { login, register, checkUserExists } from '@/lib/auth';
 import toast from 'react-hot-toast';
 import { Delete } from 'lucide-react';
 import Image from 'next/image';
@@ -13,14 +13,23 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [mobile, setMobile] = useState('');
   const [pin, setPin] = useState('');
+  const [name, setName] = useState('');
   const [step, setStep] = useState('mobile'); // 'mobile' | 'pin'
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { t } = useLanguageStore();
 
-  const handleMobileNext = (e) => {
+  const handleMobileNext = async (e) => {
     e.preventDefault();
     if (mobile.length < 10) return toast.error('Enter a valid 10-digit mobile number');
+    
+    setLoading(true);
+    const result = await checkUserExists(mobile);
+    setLoading(false);
+    
+    setIsRegister(!result.exists);
+    // Auto-fill name from worker record if they are a known worker
+    if (result.workerName) setName(result.workerName);
     setStep('pin');
   };
 
@@ -32,7 +41,7 @@ export default function LoginPage() {
       setPin(newPin);
       if (newPin.length === 4) {
         setLoading(true);
-        const res = isRegister ? await register(mobile, newPin) : await login(mobile, newPin);
+        const res = isRegister ? await register(mobile, newPin, name) : await login(mobile, newPin);
         if (res?.success) {
           toast.success(isRegister ? 'Account created!' : 'Welcome back!');
           router.push('/');
@@ -78,10 +87,10 @@ export default function LoginPage() {
           {step === 'mobile' ? (
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-7 shadow-2xl">
               <h2 className="text-xl font-bold text-white mb-1">
-                {isRegister ? t('createAccount') : t('welcomeBack')}
+                {t('welcomeBack')}
               </h2>
               <p className="text-gray-400 text-sm mb-7">
-                {isRegister ? t('registerSubtitle') : t('loginSubtitle')}
+                {t('loginSubtitle')}
               </p>
 
               <form onSubmit={handleMobileNext}>
@@ -103,29 +112,39 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-green-500/25 active:scale-[0.98] transition-all text-lg"
+                  disabled={loading}
+                  className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-green-500/25 disabled:opacity-50 active:scale-[0.98] transition-all text-lg"
                 >
-                  {t('continueBtn')}
+                  {loading ? '...' : t('continueBtn')}
                 </button>
               </form>
-
-              <button
-                onClick={() => { setIsRegister(!isRegister); setPin(''); }}
-                className="w-full mt-5 text-center text-green-400/80 text-sm hover:text-green-400 transition-colors"
-              >
-                {isRegister ? t('alreadyHaveAccount') : t('dontHaveAccount')}
-              </button>
             </div>
           ) : (
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-7 shadow-2xl">
-              <button onClick={() => { setStep('mobile'); setPin(''); }} className="text-green-400 text-sm mb-5 flex items-center gap-1 hover:text-green-300">
+              <button onClick={() => { setStep('mobile'); setPin(''); setName(''); }} className="text-green-400 text-sm mb-5 flex items-center gap-1 hover:text-green-300">
                 {t('changeNumber')}
               </button>
-              <h2 className="text-xl font-bold text-white mb-1">{t('enterPinTitle')}</h2>
+              <h2 className="text-xl font-bold text-white mb-1">{isRegister ? t('setPinTitle') : t('enterPinTitle')}</h2>
               <p className="text-gray-400 text-sm mb-2">
                 {isRegister ? t('setPinSubtitle') : t('enterPinSubtitle')}
               </p>
-              <p className="text-green-400 font-semibold text-sm mb-7">+91 {mobile}</p>
+              <p className="text-green-400 font-semibold text-sm mb-5">+91 {mobile}</p>
+
+              {/* Name field — only show for new sign-ups and only if not auto-filled as a worker */}
+              {isRegister && (
+                <div className="mb-5">
+                  <label className="text-xs font-semibold text-green-400 uppercase tracking-wider block mb-2">{t('yourName')}</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Ramesh Patel"
+                    className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-green-400/60"
+                    required
+                  />
+                  {!!name && <p className="text-xs text-green-400/70 mt-1.5">✓ Name pre-filled from your worker profile</p>}
+                </div>
+              )}
 
               {/* PIN dots */}
               <div className="flex justify-center gap-5 mb-8">

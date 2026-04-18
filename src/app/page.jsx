@@ -6,21 +6,17 @@ import useLanguageStore from '@/store/useLanguageStore';
 import { resetFarmData } from '@/lib/actions';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Wallet, Bug, IndianRupee, Users, Calculator, AlertTriangle, ChevronRight, LogOut, HardHat } from 'lucide-react';
+import { Wallet, Bug, IndianRupee, Users, Calculator, AlertTriangle, ChevronRight, LogOut, HardHat, User, Shield } from 'lucide-react';
 import Link from 'next/link';
-import { logout } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 export default function Dashboard() {
-  const { selectedFarmId } = useFarmStore();
+  const { selectedFarmId, userName } = useFarmStore();
   const { t } = useLanguageStore();
   const [resetModal, setResetModal] = useState(false);
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
   const handleReset = async (e) => {
     e.preventDefault();
     if (pin.length !== 4) return toast.error('PIN must be 4 digits');
@@ -36,23 +32,17 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
-    router.refresh();
-  };
-
   // First 4 items — displayed in 2×2 grid
   const gridItems = [
-    { titleKey: 'workerUpad', descKey: 'workerUpadDesc', icon: Wallet, href: '/expenses/upad', gradient: 'from-blue-500 to-indigo-600', glow: 'shadow-blue-500/30' },
-    { titleKey: 'farmExpenses', descKey: 'farmExpensesDesc', icon: Bug, href: '/expenses/pesticide', gradient: 'from-orange-500 to-amber-600', glow: 'shadow-orange-500/30' },
-    { titleKey: 'cropIncome', descKey: 'cropIncomeDesc', icon: IndianRupee, href: '/income', gradient: 'from-emerald-500 to-teal-600', glow: 'shadow-emerald-500/30' },
     { titleKey: 'workers', descKey: 'workersDesc', icon: Users, href: '/workers', gradient: 'from-purple-500 to-violet-600', glow: 'shadow-purple-500/30' },
+    { titleKey: 'workerMajuri', descKey: 'workerMajuriDesc', icon: HardHat, href: '/expenses/majuri', gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/30' },
+    { titleKey: 'workerUpad', descKey: 'workerUpadDesc', icon: Wallet, href: '/expenses/upad', gradient: 'from-blue-500 to-indigo-600', glow: 'shadow-blue-500/30' },
+    { titleKey: 'cropIncome', descKey: 'cropIncomeDesc', icon: IndianRupee, href: '/income', gradient: 'from-emerald-500 to-teal-600', glow: 'shadow-emerald-500/30' },
   ];
 
   // Full-width action cards below the grid
   const wideItems = [
-    { titleKey: 'workerMajuri', descKey: 'workerMajuriDesc', icon: HardHat, href: '/expenses/majuri', gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/30' },
+    { titleKey: 'farmExpenses', descKey: 'farmExpensesDesc', icon: Bug, href: '/expenses/pesticide', gradient: 'from-orange-500 to-amber-600', glow: 'shadow-orange-500/30' },
     { titleKey: 'settlement', descKey: 'settlementDesc', icon: Calculator, href: '/settlement', gradient: 'from-rose-500 to-pink-600', glow: 'shadow-rose-500/30' },
   ];
 
@@ -69,9 +59,9 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <button onClick={handleLogout} className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/20 transition-all active:scale-95">
-              <LogOut className="w-4 h-4" />
-            </button>
+            <Link href="/profile" className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-green-500/20 active:scale-95 transition-all">
+              {userName ? userName.charAt(0).toUpperCase() : <User className="w-5 h-5" />}
+            </Link>
           </div>
         </div>
         <FarmSelector />
