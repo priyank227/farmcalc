@@ -8,10 +8,14 @@ export const metadata = {
   title: 'FarmCalc',
   description: 'Farm worker & expense management',
   manifest: '/manifest.json',
-  themeColor: '#16a34a',
+  themeColor: '#0d2818',
+  icons: {
+    icon: '/icon-192x192.png',
+    apple: '/icon-512x512.png',
+  },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
+    statusBarStyle: 'black-translucent',
     title: 'FarmCalc',
   },
   formatDetection: {

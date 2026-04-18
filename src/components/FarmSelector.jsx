@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import useFarmStore from '@/store/useFarmStore';
+import useLanguageStore from '@/store/useLanguageStore';
 import { getFarms, createFarm } from '@/lib/actions';
 import toast from 'react-hot-toast';
 import { ChevronDown, Plus, Tractor } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useRouter } from 'next/navigation';
 
 export function FarmSelector() {
   const { selectedFarmId, setSelectedFarmId } = useFarmStore();
+  const { t } = useLanguageStore();
   const [farms, setFarms] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -62,7 +64,7 @@ export function FarmSelector() {
             className="w-full flex items-center gap-3 bg-green-500/20 border border-green-500/30 rounded-2xl px-4 py-3 text-green-400 font-semibold active:scale-[0.98] transition-all"
           >
             <Plus className="w-5 h-5" />
-            Create your first farm
+            {t('createFirstFarm')}
           </button>
         ) : (
           <button
@@ -73,7 +75,7 @@ export function FarmSelector() {
               <div className="w-7 h-7 bg-green-500/30 rounded-xl flex items-center justify-center">
                 <Tractor className="w-3.5 h-3.5 text-green-400" />
               </div>
-              <span className="font-bold text-base">{selectedFarm?.name || 'Select Farm'}</span>
+              <span className="font-bold text-base">{selectedFarm?.name || t('selectFarm')}</span>
             </div>
             <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -100,7 +102,7 @@ export function FarmSelector() {
                   className="w-full px-4 py-3.5 text-left flex items-center gap-3 text-green-400 hover:bg-green-500/10 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  <span className="font-semibold">Add New Farm</span>
+                  <span className="font-semibold">{t('addNewFarm')}</span>
                 </button>
               </div>
             </div>
@@ -115,12 +117,12 @@ export function FarmSelector() {
             <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center mb-4">
               <Tractor className="w-6 h-6 text-green-400" />
             </div>
-            <h2 className="text-xl font-bold text-white mb-1">New Farm</h2>
-            <p className="text-gray-400 text-sm mb-5">Enter a name for your farm or plot</p>
+            <h2 className="text-xl font-bold text-white mb-1">{t('newFarm')}</h2>
+            <p className="text-gray-400 text-sm mb-5">{t('newFarmDesc')}</p>
             <form onSubmit={handleCreateFarm}>
               <input
                 type="text"
-                placeholder="e.g. Village Farm, Highway Plot"
+                placeholder={t('farmNamePlaceholder')}
                 value={newFarmName}
                 onChange={e => setNewFarmName(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-green-400/60 mb-4"
@@ -128,9 +130,9 @@ export function FarmSelector() {
                 required
               />
               <div className="flex gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">Cancel</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">{t('cancel')}</button>
                 <button type="submit" className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold shadow-lg shadow-green-500/25">
-                  Create
+                  {t('create')}
                 </button>
               </div>
             </form>

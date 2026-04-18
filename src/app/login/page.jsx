@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login, register } from '@/lib/auth';
 import toast from 'react-hot-toast';
-import { Sprout, Delete } from 'lucide-react';
+import { Delete } from 'lucide-react';
+import Image from 'next/image';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import useLanguageStore from '@/store/useLanguageStore';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
@@ -13,6 +16,7 @@ export default function LoginPage() {
   const [step, setStep] = useState('mobile'); // 'mobile' | 'pin'
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { t } = useLanguageStore();
 
   const handleMobileNext = (e) => {
     e.preventDefault();
@@ -20,29 +24,8 @@ export default function LoginPage() {
     setStep('pin');
   };
 
-  const handlePinInput = (digit) => {
-    if (pin.length < 4) setPin(prev => prev + digit);
-  };
-
   const handlePinDelete = () => setPin(prev => prev.slice(0, -1));
 
-  const handleSubmit = async () => {
-    if (pin.length !== 4) return toast.error('Enter complete 4-digit PIN');
-    setLoading(true);
-    const res = isRegister ? await register(mobile, pin) : await login(mobile, pin);
-
-    if (res?.success) {
-      toast.success(isRegister ? 'Account created!' : 'Welcome back!');
-      router.push('/');
-      router.refresh();
-    } else {
-      toast.error(res?.message || 'Authentication failed');
-      setPin('');
-      setLoading(false);
-    }
-  };
-
-  // Auto-submit when 4 digits are entered
   const handleDigit = async (digit) => {
     const newPin = pin + digit;
     if (pin.length < 4) {
@@ -74,15 +57,20 @@ export default function LoginPage() {
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-green-600/5 rounded-full blur-3xl" />
       </div>
 
+      {/* Language Switcher top-right */}
+      <div className="absolute top-12 right-5 z-20">
+        <LanguageSwitcher />
+      </div>
+
       <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
         
         {/* Logo */}
         <div className="flex flex-col items-center mb-10 slide-up">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-3xl flex items-center justify-center mb-5 shadow-2xl shadow-green-500/30">
-            <Sprout className="w-10 h-10 text-white" strokeWidth={2.5} />
+          <div className="w-24 h-24 rounded-3xl overflow-hidden mb-5 shadow-2xl shadow-green-500/30">
+            <Image src="/icon.jpg" alt="FarmCalc Logo" width={96} height={96} className="w-full h-full object-cover" priority />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tight">FarmCalc</h1>
-          <p className="text-green-400/80 text-sm mt-1 font-medium">Khet nu Hisab, Easy Raahe</p>
+          <p className="text-green-400/80 text-sm mt-1 font-medium">{t('loginTagline')}</p>
         </div>
 
         {/* Card */}
@@ -90,15 +78,15 @@ export default function LoginPage() {
           {step === 'mobile' ? (
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-7 shadow-2xl">
               <h2 className="text-xl font-bold text-white mb-1">
-                {isRegister ? 'Create Account' : 'Welcome Back'}
+                {isRegister ? t('createAccount') : t('welcomeBack')}
               </h2>
               <p className="text-gray-400 text-sm mb-7">
-                {isRegister ? 'Register with your mobile number' : 'Enter your mobile number to continue'}
+                {isRegister ? t('registerSubtitle') : t('loginSubtitle')}
               </p>
 
               <form onSubmit={handleMobileNext}>
                 <div className="mb-5">
-                  <label className="text-xs font-semibold text-green-400 uppercase tracking-wider block mb-2">Mobile Number</label>
+                  <label className="text-xs font-semibold text-green-400 uppercase tracking-wider block mb-2">{t('mobileNumber')}</label>
                   <div className="flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-4 py-4 focus-within:border-green-400/60 focus-within:bg-white/15 transition-all">
                     <span className="text-gray-400 font-semibold text-lg">+91</span>
                     <div className="w-px h-6 bg-white/20" />
@@ -117,7 +105,7 @@ export default function LoginPage() {
                   type="submit"
                   className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-green-500/25 active:scale-[0.98] transition-all text-lg"
                 >
-                  Continue →
+                  {t('continueBtn')}
                 </button>
               </form>
 
@@ -125,17 +113,17 @@ export default function LoginPage() {
                 onClick={() => { setIsRegister(!isRegister); setPin(''); }}
                 className="w-full mt-5 text-center text-green-400/80 text-sm hover:text-green-400 transition-colors"
               >
-                {isRegister ? 'Already have account? Login' : "Don't have account? Sign Up"}
+                {isRegister ? t('alreadyHaveAccount') : t('dontHaveAccount')}
               </button>
             </div>
           ) : (
             <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-7 shadow-2xl">
               <button onClick={() => { setStep('mobile'); setPin(''); }} className="text-green-400 text-sm mb-5 flex items-center gap-1 hover:text-green-300">
-                ← Change number
+                {t('changeNumber')}
               </button>
-              <h2 className="text-xl font-bold text-white mb-1">Enter PIN</h2>
+              <h2 className="text-xl font-bold text-white mb-1">{t('enterPinTitle')}</h2>
               <p className="text-gray-400 text-sm mb-2">
-                {isRegister ? 'Set a 4-digit PIN for your account' : 'Enter your 4-digit PIN'}
+                {isRegister ? t('setPinSubtitle') : t('enterPinSubtitle')}
               </p>
               <p className="text-green-400 font-semibold text-sm mb-7">+91 {mobile}</p>
 

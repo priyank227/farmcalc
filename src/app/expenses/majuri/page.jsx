@@ -5,12 +5,12 @@ import useAppStore from '@/store/useFarmStore';
 import useLanguageStore from '@/store/useLanguageStore';
 import { getExpenses, getWorkers, createExpense, updateExpense, deleteExpense } from '@/lib/actions';
 import toast from 'react-hot-toast';
-import { Wallet, Trash2, Plus, Pencil, ChevronDown } from 'lucide-react';
+import { HardHat, Trash2, Plus, Pencil, ChevronDown } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
-const CACHE_KEY = 'expenses_upad';
+const CACHE_KEY = 'expenses_majuri';
 
-export default function UpadPage() {
+export default function MajuriPage() {
   const { selectedFarmId, getCached, setCache, invalidateCache } = useAppStore();
   const { t } = useLanguageStore();
   const [expenses, setExpenses] = useState(() => getCached(selectedFarmId, CACHE_KEY) || []);
@@ -43,7 +43,7 @@ export default function UpadPage() {
     setLoading(true);
     try {
       const [expData, wData] = await Promise.all([
-        cachedExp && !force ? Promise.resolve(cachedExp) : getExpenses(selectedFarmId, 'upad'),
+        cachedExp && !force ? Promise.resolve(cachedExp) : getExpenses(selectedFarmId, 'majuri'),
         cachedWorkers && !force ? Promise.resolve(cachedWorkers) : getWorkers(selectedFarmId),
       ]);
       setExpenses(expData); setWorkers(wData);
@@ -61,22 +61,28 @@ export default function UpadPage() {
     if (!workerId) return toast.error('Select a worker first');
     setSubmitting(true);
     try {
-      await createExpense({ farmId: selectedFarmId, workerId, type: 'upad', name: 'Upad', amount: Number(amount), date, comment });
-      toast.success('Upad added!');
+      await createExpense({ farmId: selectedFarmId, workerId, type: 'majuri', name: 'Majuri', amount: Number(amount), date, comment });
+      toast.success('Majuri added!');
       setAmount(''); setComment('');
       invalidateCache(selectedFarmId, CACHE_KEY);
       loadData(true);
-    } catch { toast.error('Failed to add Upad'); }
+    } catch { toast.error('Failed to add Majuri'); }
     finally { setSubmitting(false); }
   };
 
-  const openEdit = (exp) => { setEditModal(exp); setEditWorkerId(exp.worker_id || ''); setEditAmount(String(exp.amount)); setEditDate(exp.date); setEditComment(exp.comment || ''); };
+  const openEdit = (exp) => {
+    setEditModal(exp);
+    setEditWorkerId(exp.worker_id || '');
+    setEditAmount(String(exp.amount));
+    setEditDate(exp.date);
+    setEditComment(exp.comment || '');
+  };
 
   const handleEdit = async (e) => {
     e.preventDefault();
     setEditing(true);
     try {
-      await updateExpense(editModal.id, { workerId: editWorkerId, name: 'Upad', amount: Number(editAmount), date: editDate, comment: editComment });
+      await updateExpense(editModal.id, { workerId: editWorkerId, name: 'Majuri', amount: Number(editAmount), date: editDate, comment: editComment });
       toast.success('Updated!');
       setEditModal(null);
       invalidateCache(selectedFarmId, CACHE_KEY);
@@ -102,7 +108,7 @@ export default function UpadPage() {
 
   const SelectField = ({ value, onChange }) => (
     <div className="relative">
-      <select value={value} onChange={onChange} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-blue-400/60 appearance-none">
+      <select value={value} onChange={onChange} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-yellow-400/60 appearance-none">
         {workers.map(w => <option key={w.id} value={w.id} className="bg-gray-800">{w.name}</option>)}
       </select>
       <ChevronDown className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -111,33 +117,42 @@ export default function UpadPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col pb-10">
-      <PageHeader title={t('workerUpad')} icon={Wallet} iconBg="bg-blue-500/30" iconColor="text-blue-400" />
+      <PageHeader title={t('workerMajuri')} icon={HardHat} iconBg="bg-yellow-500/30" iconColor="text-yellow-400" />
       <div className="p-4 space-y-4">
+
         {expenses.length > 0 && (
-          <div className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/20 rounded-3xl p-5">
-            <p className="text-blue-300 text-sm font-medium mb-1">{t('totalUpadGiven')}</p>
+          <div className="bg-gradient-to-br from-yellow-500/20 to-amber-600/20 border border-yellow-500/20 rounded-3xl p-5">
+            <p className="text-yellow-300 text-sm font-medium mb-1">{t('totalMajuriGiven')}</p>
             <p className="text-3xl font-black text-white">₹{total.toLocaleString('en-IN')}</p>
           </div>
         )}
+
         <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-          <h2 className="text-white font-bold mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-400" /> {t('addUpad')}</h2>
+          <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+            <Plus className="w-4 h-4 text-yellow-400" /> {t('addMajuri')}
+          </h2>
           {workers.length === 0 ? (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-center"><p className="text-yellow-400 text-sm font-medium">{t('addWorkersFirst')}</p></div>
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-center">
+              <p className="text-yellow-400 text-sm font-medium">{t('addWorkersFirst')}</p>
+            </div>
           ) : (
             <form onSubmit={handleAdd} className="space-y-3">
               <SelectField value={workerId} onChange={e => setWorkerId(e.target.value)} />
-              <input type="number" placeholder={t('amount')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" required />
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-blue-400/60" required />
-              <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" />
-              <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">{submitting ? t('saving') : t('addUpad')}</button>
+              <input type="number" placeholder={t('amount')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" required />
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-yellow-400/60" required />
+              <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" />
+              <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold shadow-lg shadow-yellow-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">
+                {submitting ? t('saving') : t('addMajuri')}
+              </button>
             </form>
           )}
         </div>
+
         <h3 className="text-gray-400 font-semibold px-1 text-sm uppercase tracking-wider">{t('allEntries')}</h3>
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-white/5 rounded-3xl animate-pulse" />)}</div>
         ) : expenses.length === 0 ? (
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-10 text-center text-gray-500">{t('noUpadYet')}</div>
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-10 text-center text-gray-500">{t('noMajuriYet')}</div>
         ) : (
           <div className="space-y-3">
             {expenses.map(exp => (
@@ -145,12 +160,15 @@ export default function UpadPage() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-black text-white text-xl">₹{Number(exp.amount).toLocaleString('en-IN')}</span>
-                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded-full font-semibold">{exp.workers?.name}</span>
+                    <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-full font-semibold">{exp.workers?.name}</span>
                   </div>
-                  <p className="text-xs text-gray-500">{new Date(exp.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}{exp.comment && ` · ${exp.comment}`}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(exp.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}
+                    {exp.comment && ` · ${exp.comment}`}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => openEdit(exp)} className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center hover:bg-blue-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => openEdit(exp)} className="w-10 h-10 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center hover:bg-yellow-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
                   <button onClick={() => setDeleteModal(exp)} className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
@@ -159,25 +177,27 @@ export default function UpadPage() {
         )}
       </div>
 
+      {/* Edit Modal */}
       {editModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
           <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <div className="flex items-center gap-2 mb-1"><Pencil className="w-4 h-4 text-blue-400" /><h2 className="text-xl font-bold text-white">{t('editUpad')}</h2></div>
+            <div className="flex items-center gap-2 mb-1"><Pencil className="w-4 h-4 text-yellow-400" /><h2 className="text-xl font-bold text-white">{t('editMajuri')}</h2></div>
             <p className="text-gray-400 text-sm mb-5">{t('updateDetails')}</p>
             <form onSubmit={handleEdit} className="space-y-3">
               <SelectField value={editWorkerId} onChange={e => setEditWorkerId(e.target.value)} />
-              <input type="number" placeholder={t('amount')} min="1" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" required />
-              <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-blue-400/60" required />
-              <input placeholder={t('note')} value={editComment} onChange={e => setEditComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" />
+              <input type="number" placeholder={t('amount')} min="1" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" required />
+              <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-yellow-400/60" required />
+              <input placeholder={t('note')} value={editComment} onChange={e => setEditComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-yellow-400/60" />
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setEditModal(null)} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">{t('cancel')}</button>
-                <button type="submit" disabled={editing} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold disabled:opacity-50">{editing ? t('saving') : t('save')}</button>
+                <button type="submit" disabled={editing} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-600 text-white font-bold disabled:opacity-50">{editing ? t('saving') : t('save')}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
+      {/* Delete Modal */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
           <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
