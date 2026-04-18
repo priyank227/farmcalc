@@ -31,11 +31,11 @@ export default function SettlementPage() {
     finally { setLoading(false); }
   };
 
-  const totalIncome    = data.income.reduce((a, c) => a + Number(c.amount), 0);
+  const totalIncome = data.income.reduce((a, c) => a + Number(c.amount), 0);
   const totalPesticide = data.pesticide.reduce((a, c) => a + Number(c.amount), 0);
-  const totalUpad      = data.upad.reduce((a, c) => a + Number(c.amount), 0);
-  const totalMajuri    = data.majuri.reduce((a, c) => a + Number(c.amount), 0);
-  const netFarm        = totalIncome - totalPesticide - totalUpad - totalMajuri;
+  const totalUpad = data.upad.reduce((a, c) => a + Number(c.amount), 0);
+  const totalMajuri = data.majuri.reduce((a, c) => a + Number(c.amount), 0);
+  const netFarm = totalIncome - totalPesticide - totalUpad - totalMajuri;
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col pb-10">
@@ -98,24 +98,23 @@ export default function SettlementPage() {
           ) : (
             <div className="space-y-4">
               {data.workers.map((worker, i) => {
-                const workerUpad   = data.upad.filter(u => u.worker_id === worker.id).reduce((a, c) => a + Number(c.amount), 0);
+                const workerUpad = data.upad.filter(u => u.worker_id === worker.id).reduce((a, c) => a + Number(c.amount), 0);
                 const workerMajuri = data.majuri.filter(m => m.worker_id === worker.id).reduce((a, c) => a + Number(c.amount), 0);
-                const grossShare   = totalIncome * (Number(worker.share_percentage) / 100);
-                const netPayable   = grossShare - workerUpad - workerMajuri;
-                const isPositive   = netPayable >= 0;
+                const grossShare = totalIncome * (Number(worker.share_percentage) / 100);
+                const netPayable = grossShare - workerUpad - workerMajuri;
+                const isPositive = netPayable >= 0;
 
                 return (
                   <div key={worker.id} className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
                     {/* Worker Header */}
                     <div className="flex items-center gap-4 p-5 border-b border-white/5">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg ${
-                        ['bg-blue-500','bg-purple-500','bg-emerald-500','bg-orange-500'][i % 4]
-                      }`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-lg ${['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500'][i % 4]
+                        }`}>
                         {worker.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-base">{worker.name}</h3>
-                        <span className="text-sm text-gray-400">{worker.share_percentage}{t('share')}</span>
+                        <span className="text-sm text-gray-400">{worker.share_percentage}{t('% share')}</span>
                       </div>
                     </div>
 

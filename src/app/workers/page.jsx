@@ -53,7 +53,7 @@ export default function WorkersPage() {
     try {
       await createWorker(selectedFarmId, name, Number(share), mobile);
       toast.success('Worker added!');
-      
+
       const url = window.location.origin;
       const text = encodeURIComponent(`Hello ${name}, you've been added as a worker on FarmCalc. Login using your number ${mobile} here: ${url}`);
       window.open(`https://wa.me/91${mobile}?text=${text}`, '_blank');
@@ -131,7 +131,7 @@ export default function WorkersPage() {
         <h3 className="text-gray-400 font-semibold px-1 text-sm uppercase tracking-wider">{t('workersCount')} ({workers.length})</h3>
 
         {loading ? (
-          <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-20 bg-white/5 rounded-3xl animate-pulse" />)}</div>
+          <div className="space-y-3">{[1, 2].map(i => <div key={i} className="h-20 bg-white/5 rounded-3xl animate-pulse" />)}</div>
         ) : workers.length === 0 ? (
           <div className="bg-white/5 border border-white/10 rounded-3xl p-10 text-center"><UserCheck className="w-10 h-10 text-gray-600 mx-auto mb-3" /><p className="text-gray-500">{t('noWorkersYet')}</p></div>
         ) : (
@@ -177,7 +177,7 @@ export default function WorkersPage() {
             <h2 className="text-xl font-bold text-white mb-2">{t('deleteWorker')} {deleteModal.name}?</h2>
             <p className="text-gray-400 text-sm mb-5">{t('enterPinConfirm')}</p>
             <form onSubmit={handleDelete}>
-              <input type="password" placeholder={t('pin4digit')} value={pin} onChange={e => setPin(e.target.value.replace(/\D/g,'').slice(0,4))} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-red-400/60 mb-4 text-center text-xl tracking-widest" required autoFocus />
+              <input type="password" placeholder={t('pin4digit')} value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-red-400/60 mb-4 text-center text-xl tracking-widest" required autoFocus />
               <div className="flex gap-3">
                 <button type="button" onClick={() => { setDeleteModal(null); setPin(''); }} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">{t('cancel')}</button>
                 <button type="submit" disabled={deleting} className="flex-1 py-3.5 rounded-2xl bg-red-500 text-white font-bold disabled:opacity-50">{deleting ? '...' : t('delete')}</button>

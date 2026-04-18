@@ -11,15 +11,14 @@ import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function ProfilePage() {
   const { t } = useLanguageStore();
-  const { invalidateCache } = useAppStore();
+  const { invalidateCache, user, farms, setUser, setFarms } = useAppStore();
   const router = useRouter();
   
-  const [user, setUser] = useState(null);
-  const [farms, setFarms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!user || farms.length === 0);
 
   useEffect(() => {
     async function load() {
+      // If we already have data in store, we show it instantly and refresh in background
       try {
         const [userData, farmsData] = await Promise.all([
           getUserRecord(),
@@ -34,7 +33,7 @@ export default function ProfilePage() {
       }
     }
     load();
-  }, []);
+  }, [setUser, setFarms]);
 
   const handleLogout = async () => {
     await logout();

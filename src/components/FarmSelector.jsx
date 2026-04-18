@@ -9,7 +9,7 @@ import { ChevronDown, Plus, Tractor } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export function FarmSelector() {
-  const { selectedFarmId, setSelectedFarmId, farms, setFarms, setUserName } = useFarmStore();
+  const { selectedFarmId, setSelectedFarmId, farms, setFarms, setUser } = useFarmStore();
   const { t } = useLanguageStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -23,7 +23,7 @@ export function FarmSelector() {
     try {
       const [data, userRec] = await Promise.all([getFarms(), getUserRecord()]);
       setFarms(data);
-      if (userRec?.name) setUserName(userRec.name);
+      if (userRec) setUser(userRec);
       if (data.length > 0 && (!selectedFarmId || !data.find(f => f.id === selectedFarmId))) {
         setSelectedFarmId(data[0].id);
       }

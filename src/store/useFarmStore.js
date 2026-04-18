@@ -11,8 +11,8 @@ const useAppStore = create(
       setSelectedFarmId: (id) => set({ selectedFarmId: id }),
       farms: [],
       setFarms: (farms) => set({ farms }),
-      userName: null,
-      setUserName: (name) => set({ userName: name }),
+      user: null,
+      setUser: (user) => set({ user }),
 
 
       // ─── Cache Structure ──────────────────────────────────────────
@@ -70,6 +70,8 @@ const useAppStore = create(
       partialize: (state) => ({
         selectedFarmId: state.selectedFarmId,
         cache: state.cache,
+        user: state.user,
+        farms: state.farms,
       }),
     }
   )

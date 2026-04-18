@@ -33,7 +33,7 @@ CREATE TABLE public.expenses (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   farm_id uuid REFERENCES public.farms(id) ON DELETE CASCADE NOT NULL,
   worker_id uuid REFERENCES public.workers(id) ON DELETE SET NULL, -- Nullable for general pesticide expenses
-  type text NOT NULL CHECK (type IN ('upad', 'pesticide')),
+  type text NOT NULL CHECK (type IN ('upad', 'pesticide', 'majuri')),
   name text NOT NULL,
   amount numeric NOT NULL,
   date date NOT NULL,

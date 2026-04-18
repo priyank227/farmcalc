@@ -39,6 +39,14 @@ const translations = {
   farmNamePlaceholder: { en: 'Farm name', hi: 'खेत का नाम', gu: 'ખેતરનું નામ' },
   settlementDesc: { en: 'Settlement description', hi: 'हिसाब का विवरण', gu: 'હિસાબ નું વર્ણન' },
   sharePercent: { en: 'Share Percent', hi: 'हिस्सेदारी प्रतिशत', gu: 'હિસ્સેદારી ટકાવારી' },
+  totalCropIncome: { en: 'Total Crop Income', hi: 'कुल फसल आय', gu: 'કુલ પાક આવક' },
+  pesticideOther: { en: 'Pesticide & Other Expenses', hi: 'कीटनाशक और अन्य खर्च', gu: 'જંતુનાશક અને અન્ય ખર્ચ' },
+  totalUpadGivenShort: { en: 'Total Upad Given', hi: 'कुल उपद दिया', gu: 'કુલ ઉપદ આપેલ' },
+  totalMajuriShort: { en: 'Total Majuri', hi: 'कुल मजदूरी', gu: 'કુલ મજૂરી' },
+  netBalance: { en: 'Net Balance', hi: 'कुल राशि', gu: 'કુલ રકમ' },
+  workerSettlements: { en: 'Worker Settlements', hi: 'मजदूरों का हिसाब', gu: 'કામદાર હિસાબ' },
+  shareFromIncome: { en: 'Share From Income', hi: 'आय से हिस्सा', gu: 'આવક માંથી ભાગ' },
+  noFarmSelected: { en: 'No Farm Selected', hi: 'कोई खेत नहीं चुना गया', gu: 'કોઈ ખેતર પસંદ નથી' },
 
   // Login
   loginTagline: { en: 'Khet nu Hisab, Easy Raahe', hi: 'खेत का हिसाब, आसान राहें', gu: 'ખેતનું હિસાબ, સરળ રીતે' },
