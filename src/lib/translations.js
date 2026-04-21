@@ -40,9 +40,12 @@ const translations = {
   settlementDesc: { en: 'Settlement description', hi: 'हिसाब का विवरण', gu: 'હિસાબ નું વર્ણન' },
   sharePercent: { en: 'Share Percent', hi: 'हिस्सेदारी प्रतिशत', gu: 'હિસ્સેદારી ટકાવારી' },
   totalCropIncome: { en: 'Total Crop Income', hi: 'कुल फसल आय', gu: 'કુલ પાક આવક' },
-  pesticideOther: { en: 'Pesticide & Other Expenses', hi: 'कीटनाशक और अन्य खर्च', gu: 'જંતુનાશક અને અન્ય ખર્ચ' },
-  totalUpadGivenShort: { en: 'Total Upad Given', hi: 'कुल उपद दिया', gu: 'કુલ ઉપદ આપેલ' },
-  totalMajuriShort: { en: 'Total Majuri', hi: 'कुल मजदूरी', gu: 'કુલ મજૂરી' },
+  pesticideOther: { en: 'Pesticide & Other Expenses(farmer account)', hi: 'कीटनाशक और अन्य खर्च(किसान के नाम)', gu: 'જંતુનાશક અને અન્ય ખર્ચ(ખેડૂતના નામે)' },
+  totalUpadGivenShort: {
+    en: 'Total Upad Given',
+    hi: 'कुल उपाड़ दिया',
+    gu: 'કુલ ઉપાડ આપ્યો'
+  }, totalMajuriShort: { en: 'Total Majuri', hi: 'कुल मजदूरी', gu: 'કુલ મજૂરી' },
   netBalance: { en: 'Net Balance', hi: 'कुल राशि', gu: 'કુલ રકમ' },
   workerSettlements: { en: 'Worker Settlements', hi: 'मजदूरों का हिसाब', gu: 'કામદાર હિસાબ' },
   shareFromIncome: { en: 'Share From Income', hi: 'आय से हिस्सा', gu: 'આવક માંથી ભાગ' },
@@ -63,12 +66,18 @@ const translations = {
   dontHaveAccount: { en: 'Don\'t have an account?', hi: 'खाता नहीं है?', gu: 'ખાતું નથી?' },
   alreadyHaveAccount: { en: 'Already have an account?', hi: 'खाता है?', gu: 'ખાતું છે?' },
   changeNumber: { en: 'Change Number', hi: 'नंबर बदलें', gu: 'નંબર બદલો' },
-
+  addIncome: { en: 'Add Income', hi: 'आय जोड़ें', gu: 'આવક ઉમેરો' },
+  upadExceedsShare: { en: 'Upad Exceeds Share', hi: 'उपाड़ हिस्सेदारी से अधिक है', gu: 'ઉપાડ હિસ્સેદારી થી વધુ છે' },
+  upadGiven: { en: 'Upad Given', hi: 'उपाड़ दिया', gu: 'ઉપાડ આપેલ' },
+  majuriDeducted: { en: 'Majuri Deducted', hi: 'मजदूरी काटी गई', gu: 'મજૂરી કાપેલ' },
 
   // Dashboard
   workerUpad: { en: 'Worker Upad', hi: 'मजदूर उपाड़', gu: 'મજૂર ઉપાડ' },
-  farmExpenses: { en: 'Farm Expenses', hi: 'खेत के खर्चे', gu: 'ખેતરના ખર્ચ' },
-  cropIncome: { en: 'Crop Income', hi: 'फसल की कमाई', gu: 'પાકની આવક' },
+  farmExpenses: {
+    en: 'Farm Expenses (Farmer Account)',
+    hi: 'खेत का खर्च (किसान के नाम)',
+    gu: 'ખેતરનો ખર્ચ (ખેડૂતના નામે)'
+  }, cropIncome: { en: 'Crop Income', hi: 'फसल की कमाई', gu: 'પાકની આવક' },
   workers: { en: 'Workers', hi: 'मजदूर', gu: 'કામદારો' },
   settlement: { en: 'Settlement', hi: 'हिसाब', gu: 'હિસાબ' },
 

@@ -126,6 +126,22 @@ export async function createExpense({ farmId, workerId, type, name, amount, date
 export async function updateExpense(expenseId, { workerId, name, amount, date, comment }) {
   await getUser();
   const supabase = await createClient();
+
+  // Check 2-minute rule for worker expenses
+  const { data: existing, error: fetchError } = await supabase
+    .from('expenses')
+    .select('created_at, type')
+    .eq('id', expenseId)
+    .single();
+  
+  if (!fetchError && (existing.type === 'upad' || existing.type === 'majuri')) {
+    const created = new Date(existing.created_at).getTime();
+    const now = Date.now();
+    if (now - created > 2 * 60 * 1000) {
+      throw new Error('Edit window expired (2 minutes)');
+    }
+  }
+
   const { error } = await supabase
     .from('expenses')
     .update({ worker_id: workerId || null, name, amount, date, comment })
@@ -134,6 +150,21 @@ export async function updateExpense(expenseId, { workerId, name, amount, date, c
 }
 
 export async function deleteExpense(expenseId, pin) {
+  const supabase = await createClient();
+  const { data: existing, error: fetchError } = await supabase
+    .from('expenses')
+    .select('created_at, type')
+    .eq('id', expenseId)
+    .single();
+  
+  if (!fetchError && (existing.type === 'upad' || existing.type === 'majuri')) {
+    const created = new Date(existing.created_at).getTime();
+    const now = Date.now();
+    if (now - created > 2 * 60 * 1000) {
+      return { success: false, message: 'Delete window expired (2 minutes)' };
+    }
+  }
+
   return verifyPinAndDelete('expenses', expenseId, pin);
 }
 

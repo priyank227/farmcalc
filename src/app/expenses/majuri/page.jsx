@@ -31,6 +31,18 @@ export default function MajuriPage() {
   const [deleteModal, setDeleteModal] = useState(null);
   const [pin, setPin] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const isEditable = (createdAt) => {
+    if (!createdAt) return false;
+    const created = new Date(createdAt).getTime();
+    return (now - created) < 2 * 60 * 1000;
+  };
 
   const loadData = useCallback(async (force = false) => {
     if (!selectedFarmId) return;
@@ -177,8 +189,20 @@ export default function MajuriPage() {
                 </div>
                 {role === 'owner' && (
                   <div className="flex items-center gap-2">
-                    <button onClick={() => openEdit(exp)} className="w-10 h-10 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center hover:bg-yellow-500/20 active:scale-95 transition-all"><Pencil className="w-4 h-4" /></button>
-                    <button onClick={() => setDeleteModal(exp)} className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all"><Trash2 className="w-4 h-4" /></button>
+                    <button 
+                      onClick={() => openEdit(exp)} 
+                      disabled={!isEditable(exp.created_at)}
+                      className="w-10 h-10 rounded-2xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center hover:bg-yellow-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button 
+                      onClick={() => setDeleteModal(exp)} 
+                      disabled={!isEditable(exp.created_at)}
+                      className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 )}
               </div>
