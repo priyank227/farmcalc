@@ -1,22 +1,34 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
-export function PageHeader({ title, icon: Icon, iconColor = 'text-white', iconBg = 'bg-white/20' }) {
+export function PageHeader({ title, icon: Icon, iconColor = 'text-white', iconBg = 'bg-white/20', onRefresh, refreshing }) {
   return (
-    <div className="bg-gray-950 border-b border-white/5 px-5 pt-12 pb-5 flex items-center gap-4 sticky top-0 z-40">
-      <Link href="/" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center active:bg-white/20 transition-all">
-        <ArrowLeft className="w-4 h-4 text-white" />
-      </Link>
-      <div className="flex items-center gap-3">
-        {Icon && (
-          <div className={`w-9 h-9 ${iconBg} rounded-xl flex items-center justify-center`}>
-            <Icon className={`w-5 h-5 ${iconColor}`} />
-          </div>
-        )}
-        <h1 className="font-bold text-lg text-white">{title}</h1>
+    <div className="bg-gray-950 border-b border-white/5 px-5 pt-12 pb-5 flex items-center justify-between sticky top-0 z-40">
+      <div className="flex items-center gap-4">
+        <Link href="/" className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center active:bg-white/20 transition-all">
+          <ArrowLeft className="w-4 h-4 text-white" />
+        </Link>
+        <div className="flex items-center gap-3">
+          {Icon && (
+            <div className={`w-9 h-9 ${iconBg} rounded-xl flex items-center justify-center`}>
+              <Icon className={`w-5 h-5 ${iconColor}`} />
+            </div>
+          )}
+          <h1 className="font-bold text-lg text-white">{title}</h1>
+        </div>
       </div>
+
+      {onRefresh && (
+        <button 
+          onClick={onRefresh}
+          disabled={refreshing}
+          className="w-9 h-9 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center active:bg-white/20 disabled:opacity-50 transition-all"
+        >
+          <RefreshCw className={`w-4 h-4 text-orange-400 ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
+      )}
     </div>
   );
 }

@@ -115,22 +115,35 @@ export async function getExpenses(farmId, type) {
 }
 
 export async function createExpense({ farmId, workerId, type, name, amount, date, comment }) {
-  await getUser();
+  const userId = await getUser();
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('expenses')
-    .insert([{ farm_id: farmId, worker_id: workerId || null, type, name, amount, date, comment }]);
+    .insert([{ farm_id: farmId, worker_id: workerId || null, type, name, amount, date, comment }])
+    .select('*, workers(name)')
+    .single();
+
   if (error) throw error;
+
+  await createLog({
+    userId,
+    farmId,
+    action: 'CREATE',
+    category: type,
+    itemName: data.workers?.name || name,
+    amount,
+    details: { comment, date }
+  });
 }
 
 export async function updateExpense(expenseId, { workerId, name, amount, date, comment }) {
-  await getUser();
+  const userId = await getUser();
   const supabase = await createClient();
 
   // Check 2-minute rule for worker expenses
   const { data: existing, error: fetchError } = await supabase
     .from('expenses')
-    .select('created_at, type')
+    .select('created_at, type, farm_id, name, amount, workers(name)')
     .eq('id', expenseId)
     .single();
   
@@ -147,13 +160,27 @@ export async function updateExpense(expenseId, { workerId, name, amount, date, c
     .update({ worker_id: workerId || null, name, amount, date, comment })
     .eq('id', expenseId);
   if (error) throw error;
+
+  await createLog({
+    userId,
+    farmId: existing.farm_id,
+    action: 'UPDATE',
+    category: existing.type,
+    itemName: existing.workers?.name || existing.name,
+    amount,
+    details: { 
+      old: { name: existing.name, amount: existing.amount },
+      new: { name, amount, comment }
+    }
+  });
 }
 
 export async function deleteExpense(expenseId, pin) {
+  const userId = await getUser();
   const supabase = await createClient();
   const { data: existing, error: fetchError } = await supabase
     .from('expenses')
-    .select('created_at, type')
+    .select('created_at, type, farm_id, name, amount, workers(name)')
     .eq('id', expenseId)
     .single();
   
@@ -165,7 +192,19 @@ export async function deleteExpense(expenseId, pin) {
     }
   }
 
-  return verifyPinAndDelete('expenses', expenseId, pin);
+  const res = await verifyPinAndDelete('expenses', expenseId, pin);
+  if (res.success && !fetchError) {
+    await createLog({
+      userId,
+      farmId: existing.farm_id,
+      action: 'DELETE',
+      category: existing.type,
+      itemName: existing.workers?.name || existing.name,
+      amount: existing.amount,
+      details: { name: existing.name }
+    });
+  }
+  return res;
 }
 
 // -- INCOME --
@@ -221,7 +260,52 @@ export async function resetFarmData(farmId, pin) {
   return { success: true };
 }
 
+// -- LOGS --
+
+export async function getLogs() {
+  try {
+    const userId = await getUser();
+    const supabase = await createClient();
+    
+    // Fetch logs first to see if the table exists and is accessible
+    const { data, error } = await supabase
+      .from('logs')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(100);
+      
+    if (error) {
+      console.error('Supabase error in getLogs:', error);
+      throw new Error(error.message || 'Database error occurred');
+    }
+    
+    return data;
+  } catch (err) {
+    console.error('getLogs action failed:', err);
+    throw err;
+  }
+}
+
 // Internals
+
+async function createLog({ userId, farmId, action, category, itemName, amount, details }) {
+  try {
+    const supabase = await createClient();
+    await supabase.from('logs').insert([{
+      user_id: userId,
+      farm_id: farmId,
+      action,
+      category,
+      item_name: itemName,
+      amount,
+      details
+    }]);
+  } catch (err) {
+    console.error('Failed to create log:', err);
+    // Don't throw, we don't want to break the main action if logging fails
+  }
+}
 
 async function verifyPin(userId, pin) {
   const supabase = await createClient();

@@ -6,7 +6,7 @@ import useLanguageStore from '@/store/useLanguageStore';
 import { getUserRecord, getFarms } from '@/lib/actions';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { Shield, User, LogOut, Loader2, Phone } from 'lucide-react';
+import { Shield, User, LogOut, Loader2, Phone, History, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function ProfilePage() {
@@ -87,6 +87,25 @@ export default function ProfilePage() {
                   <span className="text-white font-bold">{workerFarms} {workerFarms === 1 ? 'Farm' : 'Farms'}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Action List */}
+            <div className="space-y-2">
+              <button 
+                onClick={() => router.push('/profile/logs')}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
+                    <History size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-white font-bold">{t('activityLogs') || 'Activity Logs'}</p>
+                    <p className="text-gray-500 text-xs">View all your transitions & changes</p>
+                  </div>
+                </div>
+                <ChevronRight className="text-gray-600 group-hover:text-white transition-colors" size={20} />
+              </button>
             </div>
 
             {/* Logout Button */}

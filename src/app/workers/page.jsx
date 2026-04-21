@@ -20,6 +20,7 @@ export default function WorkersPage() {
   const [mobile, setMobile] = useState('');
   const [share, setShare] = useState('25');
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [editModal, setEditModal] = useState(null);
   const [editName, setEditName] = useState('');
@@ -42,6 +43,14 @@ export default function WorkersPage() {
     } catch { toast.error('Failed to load workers'); }
     finally { setLoading(false); }
   }, [selectedFarmId, getCached, setCache]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    invalidateCache(selectedFarmId, CACHE_KEY);
+    await loadWorkers(true);
+    setRefreshing(false);
+    toast.success('Data updated');
+  };
 
   useEffect(() => { loadWorkers(); }, [loadWorkers]);
 
@@ -98,7 +107,14 @@ export default function WorkersPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col pb-10">
-      <PageHeader title={t('manageWorkers')} icon={Users} iconBg="bg-purple-500/30" iconColor="text-purple-400" />
+      <PageHeader 
+        title={t('manageWorkers')} 
+        icon={Users} 
+        iconBg="bg-purple-500/30" 
+        iconColor="text-purple-400" 
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
 
       <div className="p-4 space-y-4">
         {role === 'worker' ? (

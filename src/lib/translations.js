@@ -117,6 +117,12 @@ const translations = {
   // Settlement
   finalSettlement: { en: 'Final Settlement', hi: 'अंतिम हिसाब', gu: 'અંતિમ હિસાબ' },
   netPayable: { en: 'Net Payable', hi: 'कुल देय', gu: 'કુલ ચૂકવવાનું છે' },
+  activityLogs: { en: 'Activity Logs', hi: 'गतिविधि लॉग', gu: 'પ્રવૃત્તિ નોંધ' },
+  logsDescription: { en: 'View all your additions & changes', hi: 'अपने सभी जुड़ाव और बदलाव देखें', gu: 'તમારા બધા ઉમેરાઓ અને ફેરફારો જુઓ' },
+  noLogsYet: { en: 'No activities recorded yet', hi: 'अभी कोई गतिविधि नहीं हुई', gu: 'હજી સુધી કોઈ પ્રવૃત્તિ નોંધાઈ નથી' },
+  actionCreate: { en: 'Added', hi: 'जोड़ा गया', gu: 'ઉમેર્યું' },
+  actionUpdate: { en: 'Updated', hi: 'अपडेट किया गया', gu: 'સુધારો કર્યો' },
+  actionDelete: { en: 'Deleted', hi: 'हटाया गया', gu: 'કાઢી નાખ્યું' },
 
 };
 

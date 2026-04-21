@@ -6,7 +6,7 @@ import useLanguageStore from '@/store/useLanguageStore';
 import { resetFarmData } from '@/lib/actions';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Wallet, Bug, IndianRupee, Users, Calculator, AlertTriangle, ChevronRight, LogOut, HardHat, User, Shield } from 'lucide-react';
+import { Wallet, Bug, IndianRupee, Users, Calculator, AlertTriangle, ChevronRight, LogOut, HardHat, User, Shield, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -17,6 +17,19 @@ export default function Dashboard() {
   const [resetModal, setResetModal] = useState(false);
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { invalidateCache } = useFarmStore();
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    invalidateCache('global', 'farms');
+    // We basically need to trigger the FarmSelector's useEffect or just reload the page
+    // Since everything is cached in the store, invalidating and reloading is best.
+    window.location.reload(); 
+    // reload() is aggressive but ensures everything (user, farms, current farm data) is fresh
+    // Alternatively, I could expose a refresh function in the store.
+  };
   const handleReset = async (e) => {
     e.preventDefault();
     if (pin.length !== 4) return toast.error('PIN must be 4 digits');
@@ -58,6 +71,13 @@ export default function Dashboard() {
             <span className="text-white font-black text-xl">FarmCalc</span>
           </div>
           <div className="flex items-center gap-2">
+            <button 
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="w-9 h-9 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-orange-400 active:scale-95 transition-all disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
             <LanguageSwitcher />
             <Link href="/profile" className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-green-500/20 active:scale-95 transition-all">
               {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-5 h-5" />}

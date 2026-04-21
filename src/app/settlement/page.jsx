@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import useFarmStore from '@/store/useFarmStore';
+import useAppStore from '@/store/useFarmStore';
 import useLanguageStore from '@/store/useLanguageStore';
 import { getExpenses, getIncome, getWorkers } from '@/lib/actions';
 import toast from 'react-hot-toast';
@@ -9,15 +9,18 @@ import { Calculator, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function SettlementPage() {
-  const { selectedFarmId } = useFarmStore();
+  const { selectedFarmId, invalidateAllForFarm } = useAppStore();
   const { t } = useLanguageStore();
   const [data, setData] = useState({ workers: [], upad: [], majuri: [], pesticide: [], income: [] });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => { if (selectedFarmId) loadData(); }, [selectedFarmId]);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (force = false) => {
+    if (force) setRefreshing(true);
+    else setLoading(true);
+    
     try {
       const [workers, upad, majuri, pesticide, income] = await Promise.all([
         getWorkers(selectedFarmId),
@@ -28,7 +31,16 @@ export default function SettlementPage() {
       ]);
       setData({ workers, upad, majuri, pesticide, income });
     } catch { toast.error('Failed to load data'); }
-    finally { setLoading(false); }
+    finally { 
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    invalidateAllForFarm(selectedFarmId);
+    await loadData(true);
+    toast.success('Data updated');
   };
 
   const totalIncome = data.income.reduce((a, c) => a + Number(c.amount), 0);
@@ -39,7 +51,14 @@ export default function SettlementPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col pb-10">
-      <PageHeader title={t('finalSettlement')} icon={Calculator} iconBg="bg-rose-500/30" iconColor="text-rose-400" />
+      <PageHeader 
+        title={t('finalSettlement')} 
+        icon={Calculator} 
+        iconBg="bg-rose-500/30" 
+        iconColor="text-rose-400" 
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
@@ -47,10 +66,7 @@ export default function SettlementPage() {
         </div>
       ) : (
         <div className="p-4 space-y-4">
-          {/* Refresh */}
-          <button onClick={loadData} className="ml-auto flex items-center gap-1.5 text-gray-400 text-sm hover:text-white transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" /> {t('refresh')}
-          </button>
+          {/* Total Income */}
 
           {/* Total Income */}
           <div className="bg-gradient-to-br from-emerald-500/20 to-teal-600/10 border border-emerald-500/20 rounded-3xl p-6">

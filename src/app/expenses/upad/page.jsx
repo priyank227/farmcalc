@@ -22,6 +22,7 @@ export default function UpadPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [editModal, setEditModal] = useState(null);
   const [editWorkerId, setEditWorkerId] = useState('');
   const [editAmount, setEditAmount] = useState('');
@@ -67,6 +68,15 @@ export default function UpadPage() {
     } catch { toast.error('Failed to load data'); }
     finally { setLoading(false); }
   }, [selectedFarmId, getCached, setCache]);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    invalidateCache(selectedFarmId, CACHE_KEY);
+    invalidateCache(selectedFarmId, 'workers');
+    await loadData(true);
+    setRefreshing(false);
+    toast.success('Data updated');
+  };
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -125,7 +135,14 @@ export default function UpadPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col pb-10">
-      <PageHeader title={t('workerUpad')} icon={Wallet} iconBg="bg-blue-500/30" iconColor="text-blue-400" />
+      <PageHeader 
+        title={t('workerUpad')} 
+        icon={Wallet} 
+        iconBg="bg-blue-500/30" 
+        iconColor="text-blue-400" 
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
       <div className="p-4 space-y-4">
         {expenses.length > 0 && (
           <div className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/20 rounded-3xl p-5">
