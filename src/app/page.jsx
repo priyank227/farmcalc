@@ -10,9 +10,10 @@ import { Wallet, Bug, IndianRupee, Users, Calculator, AlertTriangle, ChevronRigh
 import Link from 'next/link';
 import Image from 'next/image';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { AutoPDFDownloader } from '@/components/AutoPDFDownloader';
 
 export default function Dashboard() {
-  const { selectedFarmId, user } = useFarmStore();
+  const { selectedFarmId, user, farms } = useFarmStore();
   const { t } = useLanguageStore();
   const [resetModal, setResetModal] = useState(false);
   const [pin, setPin] = useState('');
@@ -141,6 +142,9 @@ export default function Dashboard() {
             <AlertTriangle className="w-4 h-4" />
             {t('resetSeasonData')}
           </button> */}
+          
+          {/* Auto Monthly PDF Downloader */}
+          <AutoPDFDownloader farmId={selectedFarmId} farmName={farms.find(f => f.id === selectedFarmId)?.name} />
         </main>
       )}
 
