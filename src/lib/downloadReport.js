@@ -31,7 +31,7 @@ export async function downloadFarmReport(farmId, farmName, t) {
 
     // Upad History
     doc.setFontSize(14);
-    doc.text(t?.('workerUpad') || 'Upad History', 14, finalY + 5);
+    doc.text('Upad History', 14, finalY + 5);
     autoTable(doc, {
       startY: finalY + 10,
       head: [['Date', 'Worker', 'Amount', 'Comment']],
@@ -49,7 +49,7 @@ export async function downloadFarmReport(farmId, farmName, t) {
 
     // Worker Expenses (Majuri)
     doc.setFontSize(14);
-    doc.text(t?.('workerMajuri') || 'Workers Expense (Majuri)', 14, finalY + 5);
+    doc.text('Workers Expense (Majuri)', 14, finalY + 5);
     autoTable(doc, {
       startY: finalY + 10,
       head: [['Date', 'Worker', 'Amount', 'Comment']],
@@ -67,7 +67,7 @@ export async function downloadFarmReport(farmId, farmName, t) {
 
     // Farm Expenses (Pesticide)
     doc.setFontSize(14);
-    doc.text(t?.('farmExpenses') || 'Expense History (Pesticide)', 14, finalY + 5);
+    doc.text('Expense History (Pesticide)', 14, finalY + 5);
     autoTable(doc, {
       startY: finalY + 10,
       head: [['Date', 'Item Name', 'Amount', 'Comment']],
@@ -91,7 +91,7 @@ export async function downloadFarmReport(farmId, farmName, t) {
     const netFarm = totalIncome - totalPesticide - totalUpad - totalMajuri;
 
     doc.setFontSize(14);
-    doc.text(t?.('finalSettlement') || 'Farm Balance Summary', 14, finalY + 5);
+    doc.text('Farm Balance Summary', 14, finalY + 5);
     autoTable(doc, {
       startY: finalY + 10,
       head: [['Total Income', 'Pesticide/Other', 'Total Upad', 'Total Majuri', 'Net Farm Balance']],
@@ -112,7 +112,7 @@ export async function downloadFarmReport(farmId, farmName, t) {
 
     if (workers && workers.length > 0) {
       doc.setFontSize(12);
-      doc.text(t?.('workerSettlements') || 'Worker Settlements', 14, finalY + 5);
+      doc.text('Worker Settlements', 14, finalY + 5);
       
       const workerSettlementBody = workers.map(worker => {
         const workerUpad = upad.filter(u => u.worker_id === worker.id).reduce((a, c) => a + Number(c.amount), 0);
@@ -145,7 +145,7 @@ export async function downloadFarmReport(farmId, farmName, t) {
     // Farmer's Final Profit
     const farmerNetProfit = totalIncome - totalPesticide - totalWorkerShare;
     doc.setFontSize(14);
-    doc.text(t?.('farmerProfit') || "Farmer's Final Profit", 14, finalY + 5);
+    doc.text("Farmer's Final Profit", 14, finalY + 5);
     autoTable(doc, {
       startY: finalY + 10,
       head: [['Total Income', 'Pesticide/Other', 'Total Workers Share', "Farmer's Net Profit"]],

@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { BottomNav } from '@/components/ui/BottomNav';
 import { GlobalAutoPDFDownloader } from '@/components/GlobalAutoPDFDownloader';
+import { HydrationWrapper } from '@/components/HydrationWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -37,9 +38,11 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col relative overflow-x-hidden shadow-2xl shadow-gray-200/50 ">
-          {children}
-          <BottomNav />
-          <GlobalAutoPDFDownloader />
+          <HydrationWrapper>
+            {children}
+            <BottomNav />
+            <GlobalAutoPDFDownloader />
+          </HydrationWrapper>
         </div>
         <Toaster position="top-center" />
       </body>
