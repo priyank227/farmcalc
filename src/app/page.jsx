@@ -10,14 +10,13 @@ import Link from 'next/link';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 export default function Dashboard() {
-  const { selectedFarmId, user, farms } = useFarmStore();
+  const { selectedFarmId, user, farms, cache, setCache, invalidateCache } = useFarmStore();
   const { t } = useLanguageStore();
 
   const [netBalance, setNetBalance] = useState(null);
   const [stats, setStats] = useState({ workersShare: 0, farmersShare: 0, workersCount: 0 });
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { invalidateCache } = useFarmStore();
 
   const loadBalance = async (force = false) => {
     if (!selectedFarmId) {
@@ -25,7 +24,18 @@ export default function Dashboard() {
       return;
     }
 
-    setLoadingBalance(true);
+    // Stale-while-revalidate pattern
+    const farmCache = cache[selectedFarmId] || {};
+    const cachedStats = farmCache['dashboardStats'];
+
+    if (cachedStats && !force) {
+      setNetBalance(cachedStats.netBalance);
+      setStats(cachedStats.stats);
+      setLoadingBalance(false); // Show UI instantly
+      // Continue fetching silently in background
+    } else {
+      setLoadingBalance(true);
+    }
 
     try {
       const { getWorkers } = await import('@/lib/actions');
@@ -60,11 +70,16 @@ export default function Dashboard() {
       
       const farmersShare = totalIncome - totalPesticide - workersGrossShare;
 
-      setStats({
+      const newStats = {
         workersShare: workersNetPayable,
         farmersShare,
         workersCount: workers.length
-      });
+      };
+
+      setStats(newStats);
+      
+      // Save to cache for instant loading next time
+      setCache(selectedFarmId, 'dashboardStats', { netBalance: netCash, stats: newStats });
     } catch (err) {
       console.error(err);
     } finally {
