@@ -262,16 +262,23 @@ export async function resetFarmData(farmId, pin) {
 
 // -- LOGS --
 
-export async function getLogs() {
+export async function getLogs(farmId) {
   try {
-    const userId = await getUser();
+    const user = await getUserRecord();
     const supabase = await createClient();
     
-    // Fetch logs first to see if the table exists and is accessible
-    const { data, error } = await supabase
-      .from('logs')
-      .select('*')
-      .eq('user_id', userId)
+    let query = supabase.from('logs').select('*, farms(name)');
+    
+    if (farmId) {
+      query = query.eq('farm_id', farmId);
+    } else {
+      const allFarms = await getFarms();
+      const farmIds = allFarms.map(f => f.id);
+      if (farmIds.length === 0) return [];
+      query = query.in('farm_id', farmIds);
+    }
+    
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .limit(100);
       

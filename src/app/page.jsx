@@ -100,9 +100,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="bg-white px-5 pt-12 pb-4 flex items-center justify-between border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
-            <Tractor className="w-5 h-5 text-[#166534]" />
-          </div>
+          <img src="/icon.jpg" alt="FarmCalc Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
           <span className="text-[#166534] font-black text-xl">FarmCalc</span>
         </div>
         <div className="flex items-center gap-2">

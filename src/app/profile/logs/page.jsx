@@ -22,7 +22,7 @@ export default function LogsPage() {
     else setLoading(true);
 
     try {
-      const data = await getLogs();
+      const data = await getLogs(selectedFarmId);
       setLogs(data || []);
       setError(null);
     } catch (err) {
@@ -34,7 +34,7 @@ export default function LogsPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [selectedFarmId]);
 
   const handleRefresh = async () => {
     await load(true);
