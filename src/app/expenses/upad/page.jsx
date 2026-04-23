@@ -5,7 +5,7 @@ import useAppStore from '@/store/useFarmStore';
 import useLanguageStore from '@/store/useLanguageStore';
 import { getExpenses, getWorkers, createExpense, updateExpense, deleteExpense } from '@/lib/actions';
 import toast from 'react-hot-toast';
-import { Wallet, Trash2, Plus, Pencil, ChevronDown } from 'lucide-react';
+import { Wallet, Trash2, Plus, Pencil, ChevronDown, Calendar } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
 const CACHE_KEY = 'expenses_upad';
@@ -51,7 +51,7 @@ export default function UpadPage() {
     const cachedWorkers = getCached(selectedFarmId, 'workers');
     if (!force && cachedExp && cachedWorkers) {
       setExpenses(cachedExp); setWorkers(cachedWorkers);
-      if (cachedWorkers.length > 0) setWorkerId(prev => prev || cachedWorkers[0].id);
+      if (cachedWorkers.length > 0 && !workerId) setWorkerId(cachedWorkers[0].id);
       setLoading(false);
       return;
     }
@@ -64,7 +64,7 @@ export default function UpadPage() {
       setExpenses(expData); setWorkers(wData);
       setCache(selectedFarmId, CACHE_KEY, expData);
       setCache(selectedFarmId, 'workers', wData);
-      if (wData.length > 0) setWorkerId(prev => prev || wData[0].id);
+      if (wData.length > 0 && !workerId) setWorkerId(wData[0].id);
     } catch { toast.error('Failed to load data'); }
     finally { setLoading(false); }
   }, [selectedFarmId, getCached, setCache]);
@@ -126,103 +126,117 @@ export default function UpadPage() {
 
   const SelectField = ({ value, onChange }) => (
     <div className="relative">
-      <select value={value} onChange={onChange} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-blue-400/60 appearance-none">
-        {workers.map(w => <option key={w.id} value={w.id} className="bg-gray-800">{w.name}</option>)}
+      <select value={value} onChange={onChange} className="w-full px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 outline-none focus:border-[#166534] appearance-none shadow-sm">
+        {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
       </select>
       <ChevronDown className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col pb-10">
-      <PageHeader 
-        title={t('workerUpad')} 
-        icon={Wallet} 
-        iconBg="bg-blue-500/30" 
-        iconColor="text-blue-400" 
+    <div className="min-h-screen bg-gray-50 flex flex-col ">
+      <PageHeader
+        title={t('workerUpad')}
+        actionIcon={Calendar}
         onRefresh={handleRefresh}
         refreshing={refreshing}
       />
-      <div className="p-4 space-y-4">
+
+      <div className="p-4 space-y-6 pb-20">
         {expenses.length > 0 && (
-          <div className="bg-gradient-to-br from-blue-500/20 to-indigo-600/20 border border-blue-500/20 rounded-3xl p-5">
-            <p className="text-blue-300 text-sm font-medium mb-1">{t('totalUpadGiven')}</p>
-            <p className="text-3xl font-black text-white">₹{total.toLocaleString('en-IN')}</p>
+          <div className="bg-green-50 rounded-3xl p-5 flex items-center justify-between">
+            <div>
+              <p className="text-gray-600 text-sm font-medium mb-1">{t('totalUpadGiven')}</p>
+              <p className="text-3xl font-black text-gray-900">₹{total.toLocaleString('en-IN')}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-200/50 rounded-2xl flex items-center justify-center">
+              <Wallet className="w-6 h-6 text-[#166534]" />
+            </div>
           </div>
         )}
+
         {role === 'worker' ? (
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-3xl p-5 text-center">
-            <p className="text-blue-300 text-sm font-medium">Read-Only Mode: You cannot add or edit upad.</p>
+          <div className="bg-blue-50 border border-blue-100 rounded-3xl p-5 text-center">
+            <p className="text-blue-600 text-sm font-medium">Read-Only Mode: You cannot add or edit upad.</p>
           </div>
         ) : (
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-5">
-            <h2 className="text-white font-bold mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-blue-400" /> {t('addUpad')}</h2>
+          <div>
+            <h2 className="text-gray-900 font-bold mb-3">{t('addUpad')}</h2>
             {workers.length === 0 ? (
-              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 text-center"><p className="text-yellow-400 text-sm font-medium">{t('addWorkersFirst')}</p></div>
+              <div className="bg-yellow-50 border border-yellow-100 rounded-2xl p-4 text-center"><p className="text-yellow-600 text-sm font-medium">{t('addWorkersFirst')}</p></div>
             ) : (
               <form onSubmit={handleAdd} className="space-y-3">
                 <SelectField value={workerId} onChange={e => setWorkerId(e.target.value)} />
-                <input type="number" placeholder={t('amount')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" required />
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-blue-400/60" required />
-                <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" />
-                <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-lg shadow-blue-500/25 disabled:opacity-50 active:scale-[0.98] transition-all">{submitting ? t('saving') : t('addUpad')}</button>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
+                  <input type="number" placeholder={t('amount')} min="1" value={amount} onChange={e => setAmount(e.target.value)} className="w-full pl-8 pr-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-[#166534] shadow-sm" required />
+                </div>
+                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 outline-none focus:border-[#166534] shadow-sm" required />
+                <input placeholder={t('note')} value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-[#166534] shadow-sm" />
+                <button type="submit" disabled={submitting} className="w-full py-3.5 rounded-2xl bg-[#166534] text-white font-bold shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98] transition-all">
+                  <Plus className="w-5 h-5" />
+                  {submitting ? t('saving') : t('addUpad')}
+                </button>
               </form>
             )}
           </div>
         )}
-        <h3 className="text-gray-400 font-semibold px-1 text-sm uppercase tracking-wider">{t('allEntries')}</h3>
-        {loading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-20 bg-white/5 rounded-3xl animate-pulse" />)}</div>
-        ) : expenses.length === 0 ? (
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-10 text-center text-gray-500">{t('noUpadYet')}</div>
-        ) : (
-          <div className="space-y-3">
-            {expenses.map(exp => (
-              <div key={exp.id} className="bg-white/5 border border-white/10 rounded-3xl p-4 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-black text-white text-xl">₹{Number(exp.amount).toLocaleString('en-IN')}</span>
-                    <span className="text-xs bg-blue-500/20 text-blue-400 px-2.5 py-1 rounded-full font-semibold">{exp.workers?.name}</span>
+
+        <div>
+          <h3 className="text-gray-900 font-bold mb-3">{t('allEntries')}</h3>
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-200 rounded-2xl animate-pulse" />)}</div>
+          ) : expenses.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-3xl p-10 text-center text-gray-400 font-medium">{t('noUpadYet')}</div>
+          ) : (
+            <div className="space-y-3">
+              {expenses.map(exp => (
+                <div key={exp.id} className="bg-white border border-gray-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="font-bold text-gray-900 text-base">₹{Number(exp.amount).toLocaleString('en-IN')}</span>
+                      <span className="text-sm font-semibold text-gray-700">{exp.workers?.name}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 font-medium">{new Date(exp.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}{exp.comment && ` • ${exp.comment}`}</p>
                   </div>
-                  <p className="text-xs text-gray-500">{new Date(exp.date).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}{exp.comment && ` · ${exp.comment}`}</p>
+                  {role === 'owner' && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => openEdit(exp)}
+                        disabled={!isEditable(exp.created_at)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 active:bg-gray-100 transition-all disabled:opacity-30 disabled:grayscale"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteModal(exp)}
+                        disabled={!isEditable(exp.created_at)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 active:bg-gray-100 transition-all disabled:opacity-30 disabled:grayscale"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
-                {role === 'owner' && (
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => openEdit(exp)} 
-                      disabled={!isEditable(exp.created_at)}
-                      className="w-10 h-10 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center hover:bg-blue-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => setDeleteModal(exp)} 
-                      disabled={!isEditable(exp.created_at)}
-                      className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500/20 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale disabled:scale-100"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {editModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
-          <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <div className="flex items-center gap-2 mb-1"><Pencil className="w-4 h-4 text-blue-400" /><h2 className="text-xl font-bold text-white">{t('editUpad')}</h2></div>
-            <p className="text-gray-400 text-sm mb-5">{t('updateDetails')}</p>
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
+          <div className="bg-white border border-gray-100 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center gap-2 mb-1"><Pencil className="w-5 h-5 text-[#166534]" /><h2 className="text-xl font-bold text-gray-900">{t('editUpad')}</h2></div>
+            <p className="text-gray-500 text-sm mb-5">{t('updateDetails')}</p>
             <form onSubmit={handleEdit} className="space-y-3">
               <SelectField value={editWorkerId} onChange={e => setEditWorkerId(e.target.value)} />
-              <input type="number" placeholder={t('amount')} min="1" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" required />
-              <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white outline-none focus:border-blue-400/60" required />
-              <input placeholder={t('note')} value={editComment} onChange={e => setEditComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-blue-400/60" />
+              <input type="number" placeholder={t('amount')} min="1" value={editAmount} onChange={e => setEditAmount(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-[#166534]" required />
+              <input type="date" value={editDate} onChange={e => setEditDate(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 outline-none focus:border-[#166534]" required />
+              <input placeholder={t('note')} value={editComment} onChange={e => setEditComment(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-[#166534]" />
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setEditModal(null)} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">{t('cancel')}</button>
-                <button type="submit" disabled={editing} className="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold disabled:opacity-50">{editing ? t('saving') : t('save')}</button>
+                <button type="button" onClick={() => setEditModal(null)} className="flex-1 py-3.5 rounded-2xl bg-gray-100 text-gray-700 font-semibold">{t('cancel')}</button>
+                <button type="submit" disabled={editing} className="flex-1 py-3.5 rounded-2xl bg-[#166534] text-white font-bold shadow-lg shadow-green-900/20 disabled:opacity-50">{editing ? t('saving') : t('save')}</button>
               </div>
             </form>
           </div>
@@ -230,15 +244,15 @@ export default function UpadPage() {
       )}
 
       {deleteModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
-          <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-2">{t('deleteEntry')}</h2>
-            <p className="text-gray-400 text-sm mb-5">₹{deleteModal.amount} · {t('deleteEntryDesc')}</p>
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
+          <div className="bg-white border border-gray-100 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">{t('deleteEntry')}</h2>
+            <p className="text-gray-500 text-sm mb-5">₹{deleteModal.amount} • {t('deleteEntryDesc')}</p>
             <form onSubmit={handleDelete}>
-              <input type="password" placeholder={t('pin4digit')} value={pin} onChange={e => setPin(e.target.value.replace(/\D/g,'').slice(0,4))} className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-red-400/60 mb-4 text-center text-xl tracking-widest" required autoFocus />
+              <input type="password" placeholder={t('pin4digit')} value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))} className="w-full px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 outline-none focus:border-red-400 mb-4 text-center text-xl tracking-widest" required autoFocus />
               <div className="flex gap-3">
-                <button type="button" onClick={() => { setDeleteModal(null); setPin(''); }} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">{t('cancel')}</button>
-                <button type="submit" disabled={deleting} className="flex-1 py-3.5 rounded-2xl bg-red-500 text-white font-bold disabled:opacity-50">{deleting ? '...' : t('delete')}</button>
+                <button type="button" onClick={() => { setDeleteModal(null); setPin(''); }} className="flex-1 py-3.5 rounded-2xl bg-gray-100 text-gray-700 font-semibold">{t('cancel')}</button>
+                <button type="submit" disabled={deleting} className="flex-1 py-3.5 rounded-2xl bg-red-600 text-white font-bold shadow-lg shadow-red-600/20 disabled:opacity-50">{deleting ? '...' : t('delete')}</button>
               </div>
             </form>
           </div>

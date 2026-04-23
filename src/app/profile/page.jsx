@@ -6,34 +6,44 @@ import useLanguageStore from '@/store/useLanguageStore';
 import { getUserRecord, getFarms } from '@/lib/actions';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { Shield, User, LogOut, Loader2, Phone, History, ChevronRight } from 'lucide-react';
+import { Shield, User, LogOut, Loader2, History, ChevronRight } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const { t } = useLanguageStore();
   const { invalidateCache, user, farms, setUser, setFarms } = useAppStore();
   const router = useRouter();
-  
+
   const [loading, setLoading] = useState(!user || farms.length === 0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = async (force = false) => {
+    if (force) setRefreshing(true);
+    try {
+      const [userData, farmsData] = await Promise.all([
+        getUserRecord(),
+        getFarms()
+      ]);
+      setUser(userData);
+      setFarms(farmsData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    async function load() {
-      // If we already have data in store, we show it instantly and refresh in background
-      try {
-        const [userData, farmsData] = await Promise.all([
-          getUserRecord(),
-          getFarms()
-        ]);
-        setUser(userData);
-        setFarms(farmsData);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
     load();
   }, [setUser, setFarms]);
+
+  const handleRefresh = async () => {
+    await load(true);
+    toast.success('Profile updated');
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -47,71 +57,77 @@ export default function ProfilePage() {
   const workerFarms = farms.filter(f => f.role === 'worker').length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950 pb-10">
-      <PageHeader title={t('profile')} icon={User} iconBg="bg-blue-500/30" iconColor="text-blue-400" />
-      
-      <div className="p-4 space-y-4">
+    <div className="min-h-screen flex flex-col bg-gray-50 ">
+      <PageHeader
+        title={t('profile')}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
+
+      <div className="p-4 space-y-4 pb-20 pb-20">
         {loading ? (
           <div className="flex justify-center py-10">
-            <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#166534] animate-spin" />
           </div>
         ) : (
           <>
             {/* User Details Box */}
-            <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
               <div className="flex flex-col items-center mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-3xl text-white font-black shadow-lg shadow-blue-500/20 mb-3">
+                <div className="w-20 h-20 bg-green-50 border border-green-100 rounded-full flex items-center justify-center text-3xl text-[#166534] font-black shadow-inner mb-3">
                   {user?.name ? (
                     <span className="text-2xl font-black">{user.name.charAt(0).toUpperCase()}</span>
                   ) : (
                     <User size={36} />
                   )}
                 </div>
-                <h2 className="text-white font-bold text-2xl">{user?.name || t('yourName')}</h2>
-                <p className="text-green-400 font-semibold text-sm mt-1">+91 {user?.mobile_number}</p>
-                <p className="text-gray-400 text-xs mt-1">{t('joined')} {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</p>
+                <h2 className="text-gray-900 font-bold text-2xl">{user?.name || t('yourName')}</h2>
+                <p className="text-[#166534] font-semibold text-sm mt-1">+91 {user?.mobile_number}</p>
+                <p className="text-gray-400 font-medium text-xs mt-1">{t('joined')} {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}</p>
               </div>
 
               <div className="space-y-3">
-                <div className="bg-gray-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                  <span className="text-gray-400 font-medium flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-purple-400" /> {t('owner')}
+                <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-gray-600 font-medium flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-purple-500" /> {t('owner')}
                   </span>
-                  <span className="text-white font-bold">{ownerFarms} {ownerFarms === 1 ? 'Farm' : 'Farms'}</span>
+                  <span className="text-gray-900 font-bold">{ownerFarms} {ownerFarms === 1 ? 'Farm' : 'Farms'}</span>
                 </div>
-                
-                <div className="bg-gray-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                  <span className="text-gray-400 font-medium flex items-center gap-2">
-                    <User className="w-4 h-4 text-emerald-400" /> {t('worker')}
+
+                <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 flex items-center justify-between">
+                  <span className="text-gray-600 font-medium flex items-center gap-2">
+                    <User className="w-4 h-4 text-[#166534]" /> {t('worker')}
                   </span>
-                  <span className="text-white font-bold">{workerFarms} {workerFarms === 1 ? 'Farm' : 'Farms'}</span>
+                  <span className="text-gray-900 font-bold">{workerFarms} {workerFarms === 1 ? 'Farm' : 'Farms'}</span>
                 </div>
               </div>
             </div>
 
             {/* Action List */}
             <div className="space-y-2">
-              <button 
-                onClick={() => router.push('/profile/logs')}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between hover:bg-white/10 transition-colors group"
+              <Link
+                href="/profile/logs"
+                className="block w-full bg-white border border-gray-100 rounded-3xl p-4 hover:bg-gray-50 transition-colors group shadow-sm"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400">
-                    <History size={20} />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                      <History size={20} />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-gray-900 font-bold">{t('activityLogs') || 'Activity Logs'}</p>
+                      <p className="text-gray-500 font-medium text-xs">View all your transitions & changes</p>
+                    </div>
                   </div>
-                  <div className="text-left">
-                    <p className="text-white font-bold">{t('activityLogs') || 'Activity Logs'}</p>
-                    <p className="text-gray-500 text-xs">View all your transitions & changes</p>
-                  </div>
+                  <ChevronRight className="text-gray-300 group-hover:text-gray-500 transition-colors" size={20} />
                 </div>
-                <ChevronRight className="text-gray-600 group-hover:text-white transition-colors" size={20} />
-              </button>
+              </Link>
             </div>
 
             {/* Logout Button */}
-            <button 
+            <button
               onClick={handleLogout}
-              className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-3xl font-bold flex items-center justify-center gap-2 active:bg-red-500/20 transition-all text-lg shadow-lg shadow-red-500/5 mt-4"
+              className="w-full py-4 bg-red-50 border border-red-100 text-red-600 rounded-3xl font-bold flex items-center justify-center gap-2 active:bg-red-100 transition-all text-lg mt-4 shadow-sm"
             >
               <LogOut className="w-5 h-5" />
               {t('logout')}

@@ -12,15 +12,15 @@ export function LanguageSwitcher() {
   const { lang, setLang } = useLanguageStore();
 
   return (
-    <div className="flex items-center bg-white/10 rounded-xl p-0.5 gap-0.5">
+    <div className="flex items-center bg-gray-100 rounded-xl p-0.5 gap-0.5">
       {LANGUAGES.map(({ code, label }) => (
         <button
           key={code}
           onClick={() => setLang(code)}
           className={`px-2.5 py-1 rounded-[10px] text-xs font-bold transition-all duration-200 ${
             lang === code
-              ? 'bg-green-500 text-white shadow-sm'
-              : 'text-gray-400 hover:text-white active:scale-95'
+              ? 'bg-[#166534] text-white shadow-sm'
+              : 'text-gray-500 hover:text-gray-900 active:scale-95'
           }`}
         >
           {label}

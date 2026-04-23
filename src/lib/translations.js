@@ -20,7 +20,9 @@ const translations = {
   amount: { en: 'Amount (₹)', hi: 'राशि (₹)', gu: 'રકમ (₹)' },
   updateDetails: { en: 'Update entry details', hi: 'एंट्री विवरण अपडेट करें', gu: 'નોંધ વિગત અપડેટ કરો' },
   profile: { en: 'Profile', hi: 'प्रोफ़ाइल', gu: 'પ્રોફાઇલ' },
-  logout: { en: 'Log out', hi: 'लॉग आउट', gu: 'લોગ આઉટ' },
+  home: { en: 'Home', hi: 'होम', gu: 'હોમ' },
+  report: { en: 'Report', hi: 'रिपोर्ट', gu: 'રિપોર્ટ' },
+  logout: { en: 'Log out', hi: 'लॉग आउट', gu: 'બહાર નીકળો' },
   role: { en: 'Role', hi: 'भूमिका', gu: 'ભૂમિકા' },
   owner: { en: 'Owner', hi: 'मालिक', gu: 'માલિક' },
   worker: { en: 'Worker', hi: 'मजदूर', gu: 'કામદાર' },
@@ -38,6 +40,8 @@ const translations = {
   newFarmDesc: { en: 'Add your first farm to get started', hi: 'शुरू करने के लिए अपना पहला खेत जोड़ें', gu: 'શરૂ કરવા માટે તમારું પ્રથમ ખેતર ઉમેરો' },
   farmNamePlaceholder: { en: 'Farm name', hi: 'खेत का नाम', gu: 'ખેતરનું નામ' },
   settlementDesc: { en: 'Settlement description', hi: 'हिसाब का विवरण', gu: 'હિસાબ નું વર્ણન' },
+  farmersMoney: { en: "Farmer's Total", hi: 'किसान की कुल राशि', gu: 'ખેડૂતની કુલ રકમ' },
+  workersMoney: { en: "Worker's Total", hi: 'मजदूर की कुल राशि', gu: 'કામદારની કુલ રકમ' },
   sharePercent: { en: 'Share Percent', hi: 'हिस्सेदारी प्रतिशत', gu: 'હિસ્સેદારી ટકાવારી' },
   totalCropIncome: { en: 'Total Crop Income', hi: 'कुल फसल आय', gu: 'કુલ પાક આવક' },
   pesticideOther: { en: 'Pesticide & Other Expenses(farmer account)', hi: 'कीटनाशक और अन्य खर्च(किसान के नाम)', gu: 'જંતુનાશક અને અન્ય ખર્ચ(ખેડૂતના નામે)' },
@@ -123,7 +127,8 @@ const translations = {
   actionCreate: { en: 'Added', hi: 'जोड़ा गया', gu: 'ઉમેર્યું' },
   actionUpdate: { en: 'Updated', hi: 'अपडेट किया गया', gu: 'સુધારો કર્યો' },
   actionDelete: { en: 'Deleted', hi: 'हटाया गया', gu: 'કાઢી નાખ્યું' },
-
+  finalAmount: { en: 'Final Amount', hi: 'अंतिम राशि', gu: 'આખરનું હિસાબ' },
+  allExpenses: { en: 'All Expenses', hi: 'कुल खर्च', gu: 'કુલ ખર્ચ' },
 };
 
 export default translations;

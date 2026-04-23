@@ -2,21 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import useLanguageStore from '@/store/useLanguageStore';
+import useAppStore from '@/store/useFarmStore';
 import { getLogs } from '@/lib/actions';
+import { downloadFarmReport } from '@/lib/downloadReport';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { History, Plus, Edit2, Trash2, Loader2, Info, Calendar } from 'lucide-react';
+import { History, Plus, Edit2, Trash2, Loader2, Info, Calendar, Download } from 'lucide-react';
 
 export default function LogsPage() {
   const { t } = useLanguageStore();
+  const { selectedFarmId, farms } = useAppStore();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState(null);
 
   const load = async (force = false) => {
     if (force) setRefreshing(true);
     else setLoading(true);
-    
+
     try {
       const data = await getLogs();
       setLogs(data || []);
@@ -34,7 +38,14 @@ export default function LogsPage() {
 
   const handleRefresh = async () => {
     await load(true);
-    toast.success('Logs updated');
+  };
+
+  const handleDownload = async () => {
+    if (!selectedFarmId) return;
+    const farmName = farms.find(f => f.id === selectedFarmId)?.name;
+    setDownloading(true);
+    await downloadFarmReport(selectedFarmId, farmName, t);
+    setDownloading(false);
   };
 
   const getActionConfig = (action) => {
@@ -42,29 +53,29 @@ export default function LogsPage() {
       case 'CREATE':
         return {
           icon: Plus,
-          bg: 'bg-green-500/20',
-          text: 'text-green-400',
-          label: t('actionCreate')
+          bg: 'bg-green-100',
+          text: 'text-green-600',
+          label: t('actionCreate') || 'Create'
         };
       case 'UPDATE':
         return {
           icon: Edit2,
-          bg: 'bg-blue-500/20',
-          text: 'text-blue-400',
-          label: t('actionUpdate')
+          bg: 'bg-blue-100',
+          text: 'text-blue-600',
+          label: t('actionUpdate') || 'Update'
         };
       case 'DELETE':
         return {
           icon: Trash2,
-          bg: 'bg-red-500/20',
-          text: 'text-red-400',
-          label: t('actionDelete')
+          bg: 'bg-red-100',
+          text: 'text-red-600',
+          label: t('actionDelete') || 'Delete'
         };
       default:
         return {
           icon: Info,
-          bg: 'bg-gray-500/20',
-          text: 'text-gray-400',
+          bg: 'bg-gray-100',
+          text: 'text-gray-600',
           label: action
         };
     }
@@ -96,63 +107,62 @@ export default function LogsPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950 pb-20">
-      <PageHeader 
-        title={t('activityLogs')} 
-        icon={History} 
-        iconBg="bg-orange-500/30" 
-        iconColor="text-orange-400" 
+    <div className="min-h-screen flex flex-col bg-gray-50 ">
+      <PageHeader
+        title={t('activityLogs')}
         onRefresh={handleRefresh}
         refreshing={refreshing}
+        actionIcon={downloading ? Loader2 : Download}
+        onAction={handleDownload}
       />
 
-      <div className="px-4 py-2 flex-grow">
+      <div className="px-4 py-4 flex-grow pb-20">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 className="w-10 h-10 text-orange-400 animate-spin" />
-            <p className="text-gray-500 animate-pulse">Loading history...</p>
+            <Loader2 className="w-10 h-10 text-[#166534] animate-spin" />
+            <p className="text-gray-500 font-medium">Loading history...</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-4">
-            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4 text-red-500 border border-red-500/20">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 text-red-500 border border-red-100">
               <Info size={32} />
             </div>
-            <h3 className="text-white font-bold text-lg mb-2">Error Loading Logs</h3>
-            <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-4 w-full">
-              <p className="text-red-400 text-sm font-mono break-all">{error}</p>
+            <h3 className="text-gray-900 font-bold text-lg mb-2">Error Loading Logs</h3>
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-4 w-full">
+              <p className="text-red-600 text-sm font-mono break-all">{error}</p>
             </div>
             <p className="text-gray-500 text-xs mt-4">
-              {error.includes('relation "public.logs" does not exist') 
-                ? 'Did you run the SQL script in Supabase?' 
+              {error.includes('relation "public.logs" does not exist')
+                ? 'Did you run the SQL script in Supabase?'
                 : 'Please check your database connection.'}
             </p>
-            <button 
+            <button
               onClick={() => window.location.reload()}
-              className="mt-6 px-6 py-2 bg-white/10 text-white rounded-full text-sm font-bold active:scale-95 transition-transform"
+              className="mt-6 px-6 py-3 bg-[#166534] text-white rounded-2xl text-sm font-bold active:scale-95 transition-transform"
             >
               Try Again
             </button>
           </div>
         ) : logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-10">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4 text-gray-600">
+            <div className="w-16 h-16 bg-white border border-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
               <History size={32} />
             </div>
-            <h3 className="text-white font-bold text-lg mb-1">{t('noLogsYet')}</h3>
-            <p className="text-gray-500 text-sm">Your financial activities will appear here for security and tracking.</p>
+            <h3 className="text-gray-900 font-bold text-lg mb-1">{t('noLogsYet')}</h3>
+            <p className="text-gray-500 text-sm font-medium">Your financial activities will appear here for security and tracking.</p>
           </div>
         ) : (
           <div className="space-y-8 mt-2">
             {sortedDates.map(date => (
               <div key={date} className="relative">
                 {/* Date Header */}
-                <div className="sticky top-0 z-10 bg-gray-950/80 backdrop-blur-md py-2 mb-4 flex items-center gap-2">
-                  <div className="h-px bg-white/10 flex-grow" />
-                  <span className="text-[10px] uppercase tracking-widest font-black text-gray-500 flex items-center gap-1">
+                <div className="sticky top-14 z-10 bg-gray-50/90 backdrop-blur-md py-2 mb-4 flex items-center gap-2">
+                  <div className="h-px bg-gray-200 flex-grow" />
+                  <span className="text-[10px] uppercase tracking-widest font-black text-gray-400 flex items-center gap-1">
                     <Calendar size={10} />
                     {formatHeaderDate(date)}
                   </span>
-                  <div className="h-px bg-white/10 flex-grow" />
+                  <div className="h-px bg-gray-200 flex-grow" />
                 </div>
 
                 <div className="space-y-4">
@@ -161,46 +171,46 @@ export default function LogsPage() {
                     return (
                       <div key={log.id} className="relative pl-10 group">
                         {/* Vertical Timeline Line */}
-                        <div className="absolute left-4 top-10 bottom-0 w-px bg-gradient-to-b from-white/10 to-transparent group-last:hidden" />
-                        
+                        <div className="absolute left-4 top-10 bottom-0 w-px bg-gray-200 group-last:hidden" />
+
                         {/* Action Icon */}
-                        <div className={`absolute left-0 top-0 w-8 h-8 rounded-full ${config.bg} flex items-center justify-center ${config.text} border border-white/5 shadow-lg group-hover:scale-110 transition-transform`}>
+                        <div className={`absolute left-0 top-0 w-8 h-8 rounded-full ${config.bg} flex items-center justify-center ${config.text} border border-white shadow-sm group-hover:scale-110 transition-transform`}>
                           <config.icon size={14} />
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-2xl p-4 active:bg-white/10 transition-colors">
+                        <div className="bg-white border border-gray-100 rounded-2xl p-4 active:bg-gray-50 transition-colors shadow-sm">
                           <div className="flex justify-between items-start mb-1">
                             <span className={`text-[10px] font-bold uppercase tracking-wider ${config.text}`}>
                               {config.label}
                             </span>
-                            <span className="text-gray-500 text-[10px] font-medium">
+                            <span className="text-gray-400 text-[10px] font-medium">
                               {new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).format(new Date(log.created_at))}
                             </span>
                           </div>
-                          
-                          <h4 className="text-white font-bold text-base leading-tight">
+
+                          <h4 className="text-gray-900 font-bold text-base leading-tight">
                             {log.item_name || 'Unnamed Entry'}
                           </h4>
-                          
+
                           <div className="flex items-center gap-2 mt-2">
-                            <span className="text-xs px-2 py-0.5 bg-white/5 border border-white/5 rounded-md text-gray-400 capitalize">
+                            <span className="text-xs px-2 py-0.5 bg-gray-50 border border-gray-100 rounded-md text-gray-500 capitalize font-medium">
                               {getCategoryLabel(log.category)}
                             </span>
                             {log.amount && (
-                              <span className="text-sm font-black text-white">
+                              <span className="text-sm font-black text-gray-900">
                                 ₹{log.amount.toLocaleString('en-IN')}
                               </span>
                             )}
                           </div>
 
                           {log.farms?.name && (
-                            <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
-                              in <span className="text-gray-400 font-bold">{log.farms.name}</span>
+                            <p className="text-[10px] text-gray-400 mt-2 flex items-center gap-1 font-medium">
+                              in <span className="text-gray-600 font-bold">{log.farms.name}</span>
                             </p>
                           )}
 
                           {log.details?.comment && (
-                            <div className="mt-2 p-2 bg-black/30 rounded-lg border border-white/5 italic text-gray-400 text-[11px]">
+                            <div className="mt-2 p-2 bg-gray-50 rounded-lg border border-gray-100 italic text-gray-500 text-[11px]">
                               "{log.details.comment}"
                             </div>
                           )}

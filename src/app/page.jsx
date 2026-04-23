@@ -3,180 +3,197 @@
 import { FarmSelector } from '@/components/FarmSelector';
 import useFarmStore from '@/store/useFarmStore';
 import useLanguageStore from '@/store/useLanguageStore';
-import { resetFarmData } from '@/lib/actions';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { Wallet, Bug, IndianRupee, Users, Calculator, AlertTriangle, ChevronRight, LogOut, HardHat, User, Shield, RefreshCw } from 'lucide-react';
+import { getExpenses, getIncome } from '@/lib/actions';
+import { useState, useEffect } from 'react';
+import { Wallet, Bug, IndianRupee, Users, Calculator, Bell, ChevronRight, Home, FileText, Settings, Tractor, TrendingUp, HardHat, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
-import { AutoPDFDownloader } from '@/components/AutoPDFDownloader';
 
 export default function Dashboard() {
   const { selectedFarmId, user, farms } = useFarmStore();
   const { t } = useLanguageStore();
-  const [resetModal, setResetModal] = useState(false);
-  const [pin, setPin] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
+  const [netBalance, setNetBalance] = useState(null);
+  const [stats, setStats] = useState({ workersShare: 0, farmersShare: 0, workersCount: 0 });
+  const [loadingBalance, setLoadingBalance] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const { invalidateCache } = useFarmStore();
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    invalidateCache('global', 'farms');
-    // We basically need to trigger the FarmSelector's useEffect or just reload the page
-    // Since everything is cached in the store, invalidating and reloading is best.
-    window.location.reload(); 
-    // reload() is aggressive but ensures everything (user, farms, current farm data) is fresh
-    // Alternatively, I could expose a refresh function in the store.
-  };
-  const handleReset = async (e) => {
-    e.preventDefault();
-    if (pin.length !== 4) return toast.error('PIN must be 4 digits');
-    setLoading(true);
-    const res = await resetFarmData(selectedFarmId, pin);
-    setLoading(false);
-    if (res.success) {
-      toast.success('Farm data reset successfully');
-      setResetModal(false);
-      setPin('');
-    } else {
-      toast.error(res.message || 'Reset failed');
+  const loadBalance = async (force = false) => {
+    if (!selectedFarmId) {
+      setLoadingBalance(false);
+      return;
+    }
+
+    setLoadingBalance(true);
+
+    try {
+      const { getWorkers } = await import('@/lib/actions');
+      const [upad, majuri, pesticide, income, workers] = await Promise.all([
+        getExpenses(selectedFarmId, 'upad'),
+        getExpenses(selectedFarmId, 'majuri'),
+        getExpenses(selectedFarmId, 'pesticide'),
+        getIncome(selectedFarmId),
+        getWorkers(selectedFarmId),
+      ]);
+
+      const totalIncome = income.reduce((a, c) => a + Number(c.amount), 0);
+      const totalPesticide = pesticide.reduce((a, c) => a + Number(c.amount), 0);
+      const totalUpad = upad.reduce((a, c) => a + Number(c.amount), 0);
+      const totalMajuri = majuri.reduce((a, c) => a + Number(c.amount), 0);
+
+      const netCash = totalIncome - totalPesticide - totalUpad - totalMajuri;
+      setNetBalance(netCash);
+
+      let workersGrossShare = 0;
+      let workersNetPayable = 0;
+      
+      workers.forEach(w => {
+        const grossShare = totalIncome * (Number(w.share_percentage) / 100);
+        workersGrossShare += grossShare;
+        
+        const workerUpad = upad.filter(e => e.worker_id === w.id).reduce((a, c) => a + Number(c.amount), 0);
+        const workerMajuri = majuri.filter(e => e.worker_id === w.id).reduce((a, c) => a + Number(c.amount), 0);
+        
+        workersNetPayable += (grossShare - workerUpad - workerMajuri);
+      });
+      
+      const farmersShare = totalIncome - totalPesticide - workersGrossShare;
+
+      setStats({
+        workersShare: workersNetPayable,
+        farmersShare,
+        workersCount: workers.length
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingBalance(false);
     }
   };
 
-  // First 4 items — displayed in 2×2 grid
-  const gridItems = [
-    { titleKey: 'workers', descKey: 'workersDesc', icon: Users, href: '/workers', gradient: 'from-purple-500 to-violet-600', glow: 'shadow-purple-500/30' },
-    { titleKey: 'workerMajuri', descKey: 'workerMajuriDesc', icon: HardHat, href: '/expenses/majuri', gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/30' },
-    { titleKey: 'workerUpad', descKey: 'workerUpadDesc', icon: Wallet, href: '/expenses/upad', gradient: 'from-blue-500 to-indigo-600', glow: 'shadow-blue-500/30' },
-    { titleKey: 'cropIncome', descKey: 'cropIncomeDesc', icon: IndianRupee, href: '/income', gradient: 'from-emerald-500 to-teal-600', glow: 'shadow-emerald-500/30' },
-  ];
+  useEffect(() => {
+    loadBalance();
+  }, [selectedFarmId]);
 
-  // Full-width action cards below the grid
-  const wideItems = [
-    { titleKey: 'farmExpenses', descKey: 'farmExpensesDesc', icon: Bug, href: '/expenses/pesticide', gradient: 'from-orange-500 to-amber-600', glow: 'shadow-orange-500/30' },
-    { titleKey: 'settlement', descKey: 'settlementDesc', icon: Calculator, href: '/settlement', gradient: 'from-rose-500 to-pink-600', glow: 'shadow-rose-500/30' },
+  const handleRefresh = async () => {
+    if (!selectedFarmId) return;
+    setRefreshing(true);
+    invalidateCache(selectedFarmId, 'expenses_upad');
+    invalidateCache(selectedFarmId, 'expenses_majuri');
+    invalidateCache(selectedFarmId, 'expenses_pesticide');
+    invalidateCache(selectedFarmId, 'income');
+    await loadBalance(true);
+    setRefreshing(false);
+  };
+
+  const listItems = [
+    { titleKey: 'workers', descKey: 'workersDesc', icon: Users, href: '/workers', iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
+    { titleKey: 'workerMajuri', descKey: 'workerMajuriDesc', icon: HardHat, href: '/expenses/majuri', iconBg: 'bg-yellow-50', iconColor: 'text-yellow-600' },
+    { titleKey: 'workerUpad', descKey: 'workerUpadDesc', icon: Wallet, href: '/expenses/upad', iconBg: 'bg-orange-50', iconColor: 'text-orange-500' },
+    { titleKey: 'farmExpenses', descKey: 'farmExpensesDesc', icon: Bug, href: '/expenses/pesticide', iconBg: 'bg-rose-50', iconColor: 'text-rose-500' },
+    { titleKey: 'cropIncome', descKey: 'cropIncomeDesc', icon: IndianRupee, href: '/income', iconBg: 'bg-green-50', iconColor: 'text-green-600' },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-950">
+    <div className="min-h-screen flex flex-col bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-gray-950 border-b border-white/5 px-5 pt-12 pb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl overflow-hidden shadow-lg shadow-green-500/20">
-              <Image src="/icon.jpg" alt="FarmCalc" width={36} height={36} className="w-full h-full object-cover" priority />
-            </div>
-            <span className="text-white font-black text-xl">FarmCalc</span>
+      <div className="bg-white px-5 pt-12 pb-4 flex items-center justify-between border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
+            <Tractor className="w-5 h-5 text-[#166534]" />
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="w-9 h-9 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-orange-400 active:scale-95 transition-all disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
-            <LanguageSwitcher />
-            <Link href="/profile" className="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-green-500/20 active:scale-95 transition-all">
-              {user?.name ? user.name.charAt(0).toUpperCase() : <User className="w-5 h-5" />}
-            </Link>
-          </div>
+          <span className="text-[#166534] font-black text-xl">FarmCalc</span>
         </div>
-        <FarmSelector />
+        <div className="flex items-center gap-2">
+          <button onClick={handleRefresh} className="p-2 text-gray-500 active:scale-95 transition-transform" disabled={loadingBalance || refreshing}>
+            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+          <LanguageSwitcher />
+        </div>
       </div>
 
-      {/* Body */}
-      {!selectedFarmId ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <div className="w-20 h-20 bg-yellow-500/10 rounded-3xl flex items-center justify-center mb-5">
-            <AlertTriangle className="w-10 h-10 text-yellow-400 opacity-80" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">{t('noFarmSelected')}</h2>
-          <p className="text-gray-500 text-sm leading-relaxed">{t('noFarmDesc')}</p>
+      <div className="p-4">
+        {/* Farm Selector */}
+        <div className="mb-4">
+          <FarmSelector />
         </div>
-      ) : (
-        <main className="flex-1 p-4 pt-5 pb-10">
-          {/* 2×2 grid */}
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            {gridItems.map((item, i) => (
-              <Link key={i} href={item.href}>
-                <div className={`bg-gradient-to-br ${item.gradient} rounded-3xl p-5 text-white shadow-xl ${item.glow} active:scale-[0.96] transition-transform h-36 flex flex-col justify-between`}>
-                  <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base leading-tight">{t(item.titleKey)}</h3>
-                    <p className="text-white/70 text-xs mt-0.5">{t(item.descKey)}</p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
 
-          {/* Full-width cards (Majuri + Settlement) */}
-          {wideItems.map((item, i) => (
-            <Link key={i} href={item.href}>
-              <div className={`bg-gradient-to-r ${item.gradient} rounded-3xl p-5 text-white shadow-xl ${item.glow} active:scale-[0.98] transition-transform flex items-center justify-between mb-3`}>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                    <item.icon className="w-6 h-6 text-white" />
+        {!selectedFarmId ? (
+          <div className="flex flex-col items-center justify-center p-10 text-center bg-white border border-gray-100 rounded-3xl mt-4">
+            <Tractor className="w-12 h-12 text-gray-300 mb-3" />
+            <h2 className="text-lg font-bold text-gray-900 mb-1">{t('noFarmSelected')}</h2>
+            <p className="text-gray-500 text-sm">{t('noFarmDesc')}</p>
+          </div>
+        ) : (
+          <main className="space-y-4">
+            {/* Net Balance Card */}
+            <div className="bg-[#166534] rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-green-900/20">
+              <div className="relative z-10">
+                <p className="text-green-100 font-medium mb-1">{t('netBalance')}</p>
+                {loadingBalance ? (
+                  <div className="h-10 w-32 bg-white/20 rounded animate-pulse my-1" />
+                ) : (
+                  <>
+                    <p className="text-4xl font-black mb-1">
+                      {netBalance < 0 ? '-' : ''}₹{Math.abs(netBalance || 0).toLocaleString('en-IN')}
+                    </p>
+                    <p className="text-green-200 text-sm mb-4">{t('finalAmount')}</p>
+
+                    <div className="flex items-center gap-4 border-t border-white/20 pt-4 mt-2">
+                      <div className="flex-1">
+                        <p className="text-white/60 text-xs font-medium uppercase tracking-wider">{t('farmersMoney') || "Farmer's Total"}</p>
+                        <p className="text-lg font-bold">₹{Math.round(stats.farmersShare).toLocaleString('en-IN')}</p>
+                      </div>
+                      <div className="w-px h-8 bg-white/20" />
+                      <div className="flex-1">
+                        <p className="text-white/60 text-xs font-medium uppercase tracking-wider">{t('workersMoney') || "Worker's Total"} ({stats.workersCount})</p>
+                        <p className="text-lg font-bold">₹{Math.round(stats.workersShare).toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              <TrendingUp className="absolute top-6 right-6 w-8 h-8 text-yellow-400 opacity-80" />
+              {/* Decorative circle */}
+              <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+            </div>
+
+            {/* List Items */}
+            <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+              {listItems.map((item, i) => (
+                <Link key={i} href={item.href}>
+                  <div className={`flex items-center justify-between p-4 ${i !== listItems.length - 1 ? 'border-b border-gray-50' : ''} active:bg-gray-50 transition-colors`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 ${item.iconBg} rounded-2xl flex items-center justify-center`}>
+                        <item.icon className={`w-6 h-6 ${item.iconColor}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-base">{t(item.titleKey)}</h3>
+                        <p className="text-gray-500 text-xs">{t(item.descKey)}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-gray-300" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">{t(item.titleKey)}</h3>
-                    <p className="text-white/70 text-sm">{t(item.descKey)}</p>
-                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Final Settlement Button Card */}
+            <Link href="/settlement" className="block">
+              <div className="bg-[#166534] rounded-3xl p-5 flex items-center gap-4 text-white active:scale-[0.98] transition-all shadow-lg shadow-green-900/20">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Calculator className="w-6 h-6 text-white" />
                 </div>
-                <ChevronRight className="w-5 h-5 text-white/50" />
+                <div>
+                  <h3 className="font-bold text-lg">{t('settlement')}</h3>
+                  <p className="text-green-100 text-sm">{t('settlementDesc')}</p>
+                </div>
               </div>
             </Link>
-          ))}
-
-          {/* Reset button */}
-          {/* <button
-            onClick={() => setResetModal(true)}
-            className="w-full py-4 bg-white/5 border border-red-500/20 rounded-3xl text-red-400 font-semibold flex items-center justify-center gap-2 active:bg-red-500/10 transition-colors mt-1"
-          >
-            <AlertTriangle className="w-4 h-4" />
-            {t('resetSeasonData')}
-          </button> */}
-          
-          {/* Auto Monthly PDF Downloader */}
-          <AutoPDFDownloader farmId={selectedFarmId} farmName={farms.find(f => f.id === selectedFarmId)?.name} />
-        </main>
-      )}
-
-      {/* Reset Modal */}
-      {resetModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4 pb-6">
-          <div className="bg-gray-900 border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
-            <div className="w-12 h-12 bg-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mb-4">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">{t('resetAllData')}</h2>
-            <p className="text-gray-400 text-sm mb-6">{t('resetAllDataDesc')}</p>
-            <form onSubmit={handleReset}>
-              <input
-                type="password"
-                placeholder={t('enterPin')}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/30 outline-none focus:border-red-400/60 mb-4 text-center text-xl tracking-widest"
-                required
-                autoFocus
-              />
-              <div className="flex gap-3">
-                <button type="button" onClick={() => { setResetModal(false); setPin(''); }} className="flex-1 py-3.5 rounded-2xl bg-white/10 text-white font-semibold">{t('cancel')}</button>
-                <button type="submit" disabled={loading} className="flex-1 py-3.5 rounded-2xl bg-red-500 text-white font-bold disabled:opacity-50">
-                  {loading ? t('resetting') : t('resetBtn')}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </main>
+        )}
+      </div>
     </div>
   );
 }
