@@ -43,6 +43,9 @@ export default function LoginPage() {
         setLoading(true);
         const res = isRegister ? await register(mobile, newPin, name) : await login(mobile, newPin);
         if (res?.success) {
+          import('@/store/useFarmStore').then((module) => {
+             module.default.getState().clearStore();
+          });
           toast.success(isRegister ? 'Account created!' : 'Welcome back!');
           router.push('/');
           router.refresh();

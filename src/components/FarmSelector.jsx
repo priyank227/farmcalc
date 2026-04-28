@@ -24,12 +24,20 @@ export function FarmSelector() {
       const [data, userRec] = await Promise.all([getFarms(), getUserRecord()]);
       setFarms(data);
       if (userRec) setUser(userRec);
-      if (data.length > 0 && (!selectedFarmId || !data.find(f => f.id === selectedFarmId))) {
-        setSelectedFarmId(data[0].id);
+      if (data.length > 0) {
+        if (!selectedFarmId || !data.find(f => f.id === selectedFarmId)) {
+          setSelectedFarmId(data[0].id);
+        }
+      } else {
+        setSelectedFarmId(null);
       }
     } catch (error) {
-      if (error.message === 'Unauthorized') router.push('/login');
-      else toast.error('Failed to load farms');
+      if (error.message === 'Unauthorized') {
+        useFarmStore.getState().clearStore();
+        router.push('/login');
+      } else {
+        toast.error('Failed to load farms');
+      }
     } finally {
       setLoading(false);
     }

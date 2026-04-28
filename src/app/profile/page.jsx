@@ -47,8 +47,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     await logout();
-    // Invalidate local farm cache so different user doesn't see it (though it keys by farmid, still good measure)
-    invalidateCache('global', 'farms');
+    useAppStore.getState().clearStore();
     router.push('/login');
     router.refresh();
   };

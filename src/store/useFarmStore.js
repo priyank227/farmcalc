@@ -13,6 +13,7 @@ const useAppStore = create(
       setFarms: (farms) => set({ farms }),
       user: null,
       setUser: (user) => set({ user }),
+      clearStore: () => set({ selectedFarmId: null, farms: [], user: null, cache: {} }),
 
 
       // ─── Cache Structure ──────────────────────────────────────────

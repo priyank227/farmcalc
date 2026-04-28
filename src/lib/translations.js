@@ -129,6 +129,7 @@ const translations = {
   actionDelete: { en: 'Deleted', hi: 'हटाया गया', gu: 'કાઢી નાખ્યું' },
   finalAmount: { en: 'Final Amount', hi: 'अंतिम राशि', gu: 'આખરનું હિસાબ' },
   allExpenses: { en: 'All Expenses', hi: 'कुल खर्च', gu: 'કુલ ખર્ચ' },
+  noFarmDesc: { en: 'No farms found', hi: 'कोई खेत नहीं मिला', gu: 'કોઈ ખેતર મળ્યું નથી' },
 };
 
 export default translations;
