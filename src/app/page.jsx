@@ -18,9 +18,9 @@ export default function Dashboard() {
   const [loadingBalance, setLoadingBalance] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadBalance = async (force = false) => {
+  const loadBalance = async (force = false, mounted = { current: true }) => {
     if (!selectedFarmId) {
-      setLoadingBalance(false);
+      if (mounted.current) setLoadingBalance(false);
       return;
     }
 
@@ -29,12 +29,14 @@ export default function Dashboard() {
     const cachedStats = farmCache['dashboardStats'];
 
     if (cachedStats && !force) {
-      setNetBalance(cachedStats.netBalance);
-      setStats(cachedStats.stats);
-      setLoadingBalance(false); // Show UI instantly
+      if (mounted.current) {
+        setNetBalance(cachedStats.netBalance);
+        setStats(cachedStats.stats);
+        setLoadingBalance(false); // Show UI instantly
+      }
       // Continue fetching silently in background
     } else {
-      setLoadingBalance(true);
+      if (mounted.current) setLoadingBalance(true);
     }
 
     try {
@@ -53,7 +55,6 @@ export default function Dashboard() {
       const totalMajuri = majuri.reduce((a, c) => a + Number(c.amount), 0);
 
       const netCash = totalIncome - totalPesticide - totalUpad - totalMajuri;
-      setNetBalance(netCash);
 
       let workersGrossShare = 0;
       let workersNetPayable = 0;
@@ -76,19 +77,23 @@ export default function Dashboard() {
         workersCount: workers.length
       };
 
-      setStats(newStats);
-      
-      // Save to cache for instant loading next time
-      setCache(selectedFarmId, 'dashboardStats', { netBalance: netCash, stats: newStats });
+      if (mounted.current) {
+        setNetBalance(netCash);
+        setStats(newStats);
+        // Save to cache for instant loading next time
+        setCache(selectedFarmId, 'dashboardStats', { netBalance: netCash, stats: newStats });
+      }
     } catch (err) {
       console.error(err);
     } finally {
-      setLoadingBalance(false);
+      if (mounted.current) setLoadingBalance(false);
     }
   };
 
   useEffect(() => {
-    loadBalance();
+    const mounted = { current: true };
+    loadBalance(false, mounted);
+    return () => { mounted.current = false; };
   }, [selectedFarmId]);
 
   const handleRefresh = async () => {

@@ -34,17 +34,28 @@ export default function IncomePage() {
   const [pin, setPin] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  const loadData = useCallback(async (force = false) => {
+  const loadData = useCallback(async (force = false, mounted = { current: true }) => {
     if (!selectedFarmId) return;
     const cached = getCached(selectedFarmId, CACHE_KEY);
-    if (!force && cached) { setIncomes(cached); setLoading(false); return; }
-    setLoading(true);
+    if (!force && cached) { 
+      if (mounted.current) {
+        setIncomes(cached); setLoading(false); 
+      }
+      return; 
+    }
+    if (mounted.current) setLoading(true);
     try {
       const data = await getIncome(selectedFarmId);
-      setIncomes(data);
-      setCache(selectedFarmId, CACHE_KEY, data);
-    } catch { toast.error('Failed to load data'); }
-    finally { setLoading(false); }
+      if (mounted.current) {
+        setIncomes(data);
+        setCache(selectedFarmId, CACHE_KEY, data);
+      }
+    } catch { 
+      if (mounted.current) toast.error('Failed to load data'); 
+    }
+    finally { 
+      if (mounted.current) setLoading(false); 
+    }
   }, [selectedFarmId, getCached, setCache]);
 
   const handleRefresh = async () => {
@@ -55,7 +66,11 @@ export default function IncomePage() {
     toast.success('Data updated');
   };
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const mounted = { current: true };
+    loadData(false, mounted);
+    return () => { mounted.current = false; };
+  }, [loadData]);
 
   const handleAdd = async (e) => {
     e.preventDefault();

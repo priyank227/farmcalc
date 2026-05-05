@@ -15,11 +15,18 @@ export default function SettlementPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => { if (selectedFarmId) loadData(); }, [selectedFarmId]);
+  useEffect(() => { 
+    const mounted = { current: true };
+    if (selectedFarmId) loadData(false, mounted); 
+    return () => { mounted.current = false; };
+  }, [selectedFarmId]);
 
-  const loadData = async (force = false) => {
-    if (force) setRefreshing(true);
-    else setLoading(true);
+  const loadData = async (force = false, mounted = { current: true }) => {
+    if (force) {
+      if (mounted.current) setRefreshing(true);
+    } else {
+      if (mounted.current) setLoading(true);
+    }
 
     try {
       const [workers, upad, majuri, pesticide, income] = await Promise.all([
@@ -29,11 +36,17 @@ export default function SettlementPage() {
         getExpenses(selectedFarmId, 'pesticide'),
         getIncome(selectedFarmId),
       ]);
-      setData({ workers, upad, majuri, pesticide, income });
-    } catch { toast.error('Failed to load data'); }
+      if (mounted.current) {
+        setData({ workers, upad, majuri, pesticide, income });
+      }
+    } catch { 
+      if (mounted.current) toast.error('Failed to load data'); 
+    }
     finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (mounted.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 

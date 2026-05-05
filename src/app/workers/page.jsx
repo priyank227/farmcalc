@@ -31,17 +31,28 @@ export default function WorkersPage() {
   const [pin, setPin] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  const loadWorkers = useCallback(async (force = false) => {
+  const loadWorkers = useCallback(async (force = false, mounted = { current: true }) => {
     if (!selectedFarmId) return;
     const cached = getCached(selectedFarmId, CACHE_KEY);
-    if (!force && cached) { setWorkers(cached); setLoading(false); return; }
-    setLoading(true);
+    if (!force && cached) { 
+      if (mounted.current) {
+        setWorkers(cached); setLoading(false); 
+      }
+      return; 
+    }
+    if (mounted.current) setLoading(true);
     try {
       const data = await getWorkers(selectedFarmId);
-      setWorkers(data);
-      setCache(selectedFarmId, CACHE_KEY, data);
-    } catch { toast.error('Failed to load workers'); }
-    finally { setLoading(false); }
+      if (mounted.current) {
+        setWorkers(data);
+        setCache(selectedFarmId, CACHE_KEY, data);
+      }
+    } catch { 
+      if (mounted.current) toast.error('Failed to load workers'); 
+    }
+    finally { 
+      if (mounted.current) setLoading(false); 
+    }
   }, [selectedFarmId, getCached, setCache]);
 
   const handleRefresh = async () => {
@@ -52,7 +63,11 @@ export default function WorkersPage() {
     toast.success('Data updated');
   };
 
-  useEffect(() => { loadWorkers(); }, [loadWorkers]);
+  useEffect(() => {
+    const mounted = { current: true };
+    loadWorkers(false, mounted);
+    return () => { mounted.current = false; };
+  }, [loadWorkers]);
 
   const handleAdd = async (e) => {
     e.preventDefault();

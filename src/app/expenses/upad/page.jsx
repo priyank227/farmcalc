@@ -45,29 +45,37 @@ export default function UpadPage() {
     return (now - created) < 2 * 60 * 1000;
   };
 
-  const loadData = useCallback(async (force = false) => {
+  const loadData = useCallback(async (force = false, mounted = { current: true }) => {
     if (!selectedFarmId) return;
     const cachedExp = getCached(selectedFarmId, CACHE_KEY);
     const cachedWorkers = getCached(selectedFarmId, 'workers');
     if (!force && cachedExp && cachedWorkers) {
-      setExpenses(cachedExp); setWorkers(cachedWorkers);
-      if (cachedWorkers.length > 0 && !workerId) setWorkerId(cachedWorkers[0].id);
-      setLoading(false);
+      if (mounted.current) {
+        setExpenses(cachedExp); setWorkers(cachedWorkers);
+        if (cachedWorkers.length > 0 && !workerId) setWorkerId(cachedWorkers[0].id);
+        setLoading(false);
+      }
       return;
     }
-    setLoading(true);
+    if (mounted.current) setLoading(true);
     try {
       const [expData, wData] = await Promise.all([
         cachedExp && !force ? Promise.resolve(cachedExp) : getExpenses(selectedFarmId, 'upad'),
         cachedWorkers && !force ? Promise.resolve(cachedWorkers) : getWorkers(selectedFarmId),
       ]);
-      setExpenses(expData); setWorkers(wData);
-      setCache(selectedFarmId, CACHE_KEY, expData);
-      setCache(selectedFarmId, 'workers', wData);
-      if (wData.length > 0 && !workerId) setWorkerId(wData[0].id);
-    } catch { toast.error('Failed to load data'); }
-    finally { setLoading(false); }
-  }, [selectedFarmId, getCached, setCache]);
+      if (mounted.current) {
+        setExpenses(expData); setWorkers(wData);
+        setCache(selectedFarmId, CACHE_KEY, expData);
+        setCache(selectedFarmId, 'workers', wData);
+        if (wData.length > 0 && !workerId) setWorkerId(wData[0].id);
+      }
+    } catch { 
+      if (mounted.current) toast.error('Failed to load data'); 
+    }
+    finally { 
+      if (mounted.current) setLoading(false); 
+    }
+  }, [selectedFarmId, getCached, setCache, workerId]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -78,7 +86,11 @@ export default function UpadPage() {
     toast.success('Data updated');
   };
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const mounted = { current: true };
+    loadData(false, mounted);
+    return () => { mounted.current = false; };
+  }, [loadData]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
